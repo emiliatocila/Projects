@@ -1,0 +1,27 @@
+[Files List]
+C:\Aldec\Active-HDL-Student-Edition\vlib\std/src/standard.vhd=S
+C:\Aldec\Active-HDL-Student-Edition\vlib\std/src/textio.vhd=S
+C:\Aldec\Active-HDL-Student-Edition\vlib\ieee/src/std_logic_1164.vhdl=S
+C:\Aldec\Active-HDL-Student-Edition\vlib\ieee/src/std_logic_1164-body.vhdl=S
+C:\Aldec\Active-HDL-Student-Edition\vlib\ieee/src/arith_p.vhd=S
+C:\Aldec\Active-HDL-Student-Edition\vlib\ieee/src/arith_b.vhd=S
+C:\Aldec\Active-HDL-Student-Edition\vlib\ieee/src/unsigned_p.vhd=S
+C:\Aldec\Active-HDL-Student-Edition\vlib\ieee/src/unsigned_b.vhd=S
+C:\Aldec\Active-HDL-Student-Edition\vlib\ieee/src/numeric_std.vhdl=S
+C:\Aldec\Active-HDL-Student-Edition\vlib\ieee/src/numeric_std-body.vhdl=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/BCD_7SEGM.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/MUX_2TO1_BIT.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/MUX_PROGRAM_PRESP_CLT.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/MUX_4TO1_INTEGER.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/MUX_2TO1.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/MUX_PROGRAM.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/COUNTER_GET.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/CONVERSIE.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/AFISOR.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/TIMP_AFISOR.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/NEXT_STATE_LOGIC.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/TIME_CALC.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/GET_DATA.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/DEBOUNCE.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/DIVIDER.vhd=S
+C:\Users\EMILIA\Desktop\Facultate\SEMESTRUL 2\PSN\PROIECT - MASINA DE SPALAT\MASINA_DE_SPALAT_FINAL\MasinaDeSpalat\Components/src/AUTOMAT.vhd=S

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XML>
+	<document type="stimulators" version="1">
+		<set name="ASDB Stimulators" active="1">
+			<stimulator>
+				<signal_path value="/AUTOMAT/BUTON_AUTO"/>
+				<rawdescription value="KEY:KEY:Override:65/0,1:A:1:"/>
+			</stimulator>
+			<stimulator>
+				<signal_path value="/AUTOMAT/BUTON_TEMPERATURA"/>
+				<rawdescription value="KEY:KEY:Override:84/0,1:T:1:"/>
+			</stimulator>
+			<stimulator>
+				<signal_path value="/AUTOMAT/BUTON_VITEZA"/>
+				<rawdescription value="KEY:KEY:Override:86/0,1:V:1:"/>
+			</stimulator>
+			<stimulator>
+				<signal_path value="/AUTOMAT/CLATIRE_SUPL_MANUAL"/>
+				<rawdescription value="KEY:KEY:Override:67/0,1:C:1:"/>
+			</stimulator>
+			<stimulator>
+				<signal_path value="/AUTOMAT/CLK"/>
+				<rawdescription value="CLK:FRM:Override:10.000000;2;1;0;50;1:Clock:0:"/>
+			</stimulator>
+			<stimulator>
+				<signal_path value="/AUTOMAT/PRESPALARE_MANUAL"/>
+				<rawdescription value="KEY:KEY:Override:80/0,1:P:1:"/>
+			</stimulator>
+			<stimulator>
+				<signal_path value="/AUTOMAT/SEL_MODE"/>
+				<rawdescription value="KEY:KEY:Override:77/0,1:M:1:"/>
+			</stimulator>
+			<stimulator>
+				<signal_path value="/AUTOMAT/START"/>
+				<rawdescription value="KEY:KEY:Override:83/0,1:S:1:"/>
+			</stimulator>
+			<stimulator>
+				<signal_path value="/AUTOMAT/USA"/>
+				<rawdescription value="KEY:KEY:Override:85/0,1:U:1:"/>
+			</stimulator>
+		</set>
+	</document>
+</XML>

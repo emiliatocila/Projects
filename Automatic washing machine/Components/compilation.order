@@ -1,0 +1,16 @@
+.\src\COUNTER_GET.vhd
+.\src\BCD_7SEGM.vhd
+.\src\DIVIDER.vhd
+.\src\MUX_2TO1_BIT.vhd
+.\src\MUX_2TO1.vhd
+.\src\MUX_PROGRAM_PRESP_CLT.vhd
+.\src\MUX_PROGRAM.vhd
+.\src\TIMP_AFISOR.vhd
+.\src\TIME_CALC.vhd
+.\src\NEXT_STATE_LOGIC.vhd
+.\src\MUX_4TO1_INTEGER.vhd
+.\src\DEBOUNCE.vhd
+.\src\AFISOR.vhd
+.\src\GET_DATA.vhd
+.\src\AUTOMAT.vhd
+.\src\CONVERSIE.vhd

@@ -1,0 +1,935 @@
+library IEEE;  
+use IEEE.STD_LOGIC_1164.all; 
+use IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity AUTOMAT is
+	port (CLK, START, SEL_MODE, USA, BUTON_AUTO, BUTON_TEMPERATURA, BUTON_VITEZA, PRESPALARE_MANUAL, CLATIRE_SUPL_MANUAL: in STD_LOGIC;
+	TEMPERATURA, VITEZA: inout INTEGER;	
+	PRESPALARE, CLATIRE_SUPL, USA_BLOCATA: inout STD_LOGIC;  
+	TIMP_TOTAL: inout NATURAL;
+	ACTIV: out STD_LOGIC;
+	ROTIRE, ALIMENTARE, INCALZIRE, EVACUARE, PRESPALARE_OUT, CLATIRE_SUPL_OUT: out STD_LOGIC;
+	A_TO_G: out STD_LOGIC_VECTOR(6 downto 0);
+	AN: out STD_LOGIC_VECTOR(3 downto 0));
+end AUTOMAT;
+
+architecture AUTOMAT_ARCH of AUTOMAT is	
+
+--constante timpi
+constant TIMP_SPALARE_PRINCIPALA: INTEGER := 120;
+constant TIMP_CLATIRE: INTEGER := 60;
+constant TIMP_CENTRIFUGARE: INTEGER := 60;
+constant TIMP_PRESPALARE: INTEGER := 60;
+constant TIMP_APA: INTEGER := 6;  
+
+--divizor
+component CLOCK_DIVIDER
+	port (MCLK, CLR: in STD_LOGIC;
+	CLK_DIVIZAT, CLK_DIVIZAT_AFIS: out STD_LOGIC);
+end component; 	 
+
+--clock-uri divizate
+signal CLK_DIV: STD_LOGIC; 
+signal CLK_DIV_AF: STD_LOGIC;
+ 
+--debounce
+component DEBOUNCE4_PUSH_BUTTONS
+	port (CCLK, CLR: in STD_LOGIC; --clk divizat
+	INP: in STD_LOGIC; 
+	OUTP: out STD_LOGIC);
+end component;		
+
+--semnalele corecte de la butoane (debounced)
+signal BUTON_AUTO_D, BUTON_TEMPERATURA_D, BUTON_VITEZA_D, START_D: STD_LOGIC;
+
+--preluare date input
+component GET_DATA
+	port (MODE, BUTON_P, BUTON_T, BUTON_V, PRESPALARE_MANUAL, CLATIRE_MANUAL: in STD_LOGIC;
+	PRESPALARE, CLATIRE_SUPL: out STD_LOGIC;
+	VITEZA, TEMPERATURA: out INTEGER);
+end component;	   
+
+--calculare timp total 
+component TIME_CALC
+	port (TEMPERATURA, TIMP_SPALARE_PRINCIPALA, TIMP_CLATIRE, TIMP_CENTRIFUGARE, TIMP_PRESPALARE, TIMP_APA: in INTEGER;
+	PRESPALARE, CLATIRE_SUPL: in STD_LOGIC;
+	TIMP: out NATURAL);
+end component;
+
+--logica de stari
+component NEXT_STATE_LOGIC
+	port(START, PRESPALARE, CLATIRE_SUPL, USA, CLK: in STD_LOGIC; 
+	TEMPERATURA: in INTEGER;
+	PRESPALARE_OUT, CLATIRE_SUPL_OUT, ACTIV, ROTIRE, ALIMENTARE, INCALZIRE, EVACUARE, USA_BLOCATA: out STD_LOGIC);
+end component; 
+
+--timer
+component TIMP_AFISOR
+	port(CLK, START, USA: in STD_LOGIC;
+	TIMP_IN: in NATURAL;
+	TIMP_NATURAL: out NATURAL;
+	TIMP: out STD_LOGIC_VECTOR(11 downto 0));	
+end component;
+
+--afisor
+component AFISOR
+	port (CLK: in STD_LOGIC;	   
+	TIMP: in NATURAL;
+	UNITATI, ZECI, SUTE, MII: in STD_LOGIC_VECTOR(3 downto 0);
+	A_TO_G: out STD_LOGIC_VECTOR(6 downto 0);
+	AN: out STD_LOGIC_VECTOR(3 downto 0));
+end component; 
+
+--conversia
+component BIN_TO_BCD is
+	port(BINAR: in STD_LOGIC_VECTOR(11 downto 0);
+	UNITATI: out STD_LOGIC_VECTOR(3 downto 0);
+	ZECI: out STD_LOGIC_VECTOR(3 downto 0);
+	SUTE: out STD_LOGIC_VECTOR(3 downto 0);	
+	MII: out STD_LOGIC_VECTOR(3 downto 0));
+end component;
+
+signal TIMP_AFIS: STD_LOGIC_VECTOR(11 downto 0);
+signal TIMP_NATURAL: NATURAL;
+signal UNITATI, ZECI, SUTE, MII: STD_LOGIC_VECTOR(3 downto 0);
+
+begin  
+
+DIVIZARE_CLK: CLOCK_DIVIDER port map (CLK, '0', CLK_DIV, CLK_DIV_AF); 
+DEBOUNCE_AUTO: DEBOUNCE4_PUSH_BUTTONS port map (CLK_DIV, '0', BUTON_AUTO, BUTON_AUTO_D);
+DEBOUNCE_TEMPERATURA: DEBOUNCE4_PUSH_BUTTONS port map (CLK_DIV, '0', BUTON_TEMPERATURA, BUTON_TEMPERATURA_D);
+DEBOUNCE_VITEZA: DEBOUNCE4_PUSH_BUTTONS port map (CLK_DIV, '0', BUTON_VITEZA, BUTON_VITEZA_D);	
+DEBOUNCE_START: DEBOUNCE4_PUSH_BUTTONS port map (CLK_DIV, '0', START, START_D);	
+GET_INPUT: GET_DATA port map (SEL_MODE, BUTON_AUTO_D, BUTON_TEMPERATURA_D, BUTON_VITEZA_D, PRESPALARE_MANUAL, CLATIRE_SUPL_MANUAL, PRESPALARE, CLATIRE_SUPL, VITEZA, TEMPERATURA);
+CALC_TIMP: TIME_CALC port map (TEMPERATURA, TIMP_SPALARE_PRINCIPALA, TIMP_CLATIRE, TIMP_CENTRIFUGARE, TIMP_PRESPALARE, TIMP_APA, PRESPALARE, CLATIRE_SUPL, TIMP_TOTAL);
+STARE_NXT: NEXT_STATE_LOGIC port map (START_D, PRESPALARE, CLATIRE_SUPL, USA, CLK_DIV, TEMPERATURA, PRESPALARE_OUT, CLATIRE_SUPL_OUT, ACTIV, ROTIRE, ALIMENTARE, INCALZIRE, EVACUARE, USA_BLOCATA); 
+TIMER: TIMP_AFISOR port map (CLK_DIV, START_D, USA, TIMP_TOTAL, TIMP_NATURAL, TIMP_AFIS);
+AFISOR_7SEGM: AFISOR port map (CLK_DIV_AF, TIMP_NATURAL, UNITATI, ZECI, SUTE, MII, A_TO_G, AN);	
+COMP: BIN_TO_BCD port map (TIMP_AFIS, UNITATI, ZECI, SUTE, MII);
+
+end AUTOMAT_ARCH;
+
+------------------
+
+library IEEE;				
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.STD_LOGIC_UNSIGNED.all;
+use IEEE.NUMERIC_STD.all;
+
+entity TIMP_AFISOR is
+	port(CLK, START, USA: in STD_LOGIC;
+	TIMP_IN: in NATURAL;
+	TIMP_NATURAL: out NATURAL;
+	TIMP: out STD_LOGIC_VECTOR(11 downto 0));		  
+end TIMP_AFISOR;
+
+architecture TIMP_AFISOR_ARCH of TIMP_AFISOR is	
+
+signal COUNT, COUNT_DEBLOCARE_USA: NATURAL;
+
+begin	
+	process(CLK, START)	
+	
+	variable OK: BIT := '0'; 
+	variable NEXT_CLOCK: BIT := '0';
+	
+	begin 
+	if (CLK'EVENT and CLK = '1' and CLK'LAST_VALUE = '0') then
+		if (START = '1' and USA = '1') then
+			OK := '1'; 	   
+			COUNT_DEBLOCARE_USA <= 6;
+		end if;	
+		if (OK = '1') then
+			if (COUNT /= 0) then 
+					if (COUNT = TIMP_IN and NEXT_CLOCK = '0') then
+						NEXT_CLOCK := '1';
+					elsif (NEXT_CLOCK = '1') then
+						COUNT <= COUNT - 1;	
+					end if;	
+			else 
+				OK := '0'; 
+				NEXT_CLOCK := '0'; 
+			end if;
+		else 
+			if (OK = '0' and COUNT_DEBLOCARE_USA /= 0) then 
+					COUNT_DEBLOCARE_USA <= COUNT_DEBLOCARE_USA - 1;	 
+			else 
+				COUNT <= TIMP_IN;
+			end if;
+		end if;
+	end if;
+	end process; 
+	
+	TIMP_NATURAL <= COUNT;
+	TIMP <= STD_LOGIC_VECTOR(to_unsigned(COUNT, 12));
+
+end TIMP_AFISOR_ARCH;
+
+-----------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity DEBOUNCE4_PUSH_BUTTONS is
+	port (CCLK, CLR: in STD_LOGIC; --clk divizat
+	INP: in STD_LOGIC; 
+	OUTP: out STD_LOGIC);
+end DEBOUNCE4_PUSH_BUTTONS;
+
+architecture DEBOUNCE4_ARCH of DEBOUNCE4_PUSH_BUTTONS is  
+
+signal DELAY1, DELAY2, DELAY3: STD_LOGIC;   -- iesirile bistabilelor D
+
+begin
+	
+	process(CCLK, CLR)
+	begin
+		if (CLR = '1') then
+			DELAY1 <= '0';
+			DELAY2 <= '0';
+			DELAY3 <= '0';
+		elsif (CCLK'EVENT and CCLK = '1' and CCLK'LAST_VALUE = '0') then 
+			DELAY1 <= INP;
+			DELAY2 <= DELAY1;
+			DELAY3 <= DELAY2;
+		end if;
+	end process;	
+	
+	OUTP <= DELAY1 and DELAY2 and DELAY3;  
+	
+end DEBOUNCE4_ARCH;
+
+-------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity CLOCK_DIVIDER is
+	port (MCLK, CLR: in STD_LOGIC;
+	CLK_DIVIZAT, CLK_DIVIZAT_AFIS: out STD_LOGIC);
+end CLOCK_DIVIDER;
+
+architecture CLOCK_DIVIDER_ARCH of CLOCK_DIVIDER is
+
+signal Q: STD_LOGIC_VECTOR(27 downto 0);	
+
+begin		 
+	
+	process(MCLK, CLR)
+	begin
+		if (CLR = '1' or Q = "U") then
+			Q <= X"0000000";
+		elsif (MCLK'EVENT and MCLK = '1' and MCLK'LAST_VALUE = '0') then
+			Q <= Q + 1;
+		end if;
+	end process; 
+	
+	CLK_DIVIZAT <= Q(23); -- 0.5 secunde	= Q(26)	
+	CLK_DIVIZAT_AFIS <= Q(17); -- vom avea nevoie de 190 Hz pentru afisor / -- Q(22)	/ --Q(17)
+end CLOCK_DIVIDER_ARCH; 
+
+-------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity BCD_7_DECODER is
+	port(inputBCD : in NATURAL;
+	outputBCD : out STD_LOGIC_VECTOR(6 downto 0));
+end BCD_7_DECODER;
+
+architecture BCD_7_DECODER_ARCH of BCD_7_DECODER is	
+
+begin
+	process(inputBCD)
+	begin
+		case inputBCD is
+			when 0 => outputBCD <= "0000001";
+			when 1 => outputBCD <= "1001111";
+			when 2 => outputBCD <= "0010010";
+			when 3 => outputBCD <= "0000110";
+			when 4 => outputBCD <= "1001100";
+			when 5 => outputBCD <= "0100100";
+			when 6 => outputBCD <= "0100000";
+			when 7 => outputBCD <= "0001111";
+			when 8 => outputBCD <= "0000000";
+			when 9 => outputBCD <= "0000100"; 
+			when others => outputBCD <= "1111111";
+		end case;
+	end process;  
+	
+end BCD_7_DECODER_ARCH;
+
+--------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.STD_LOGIC_UNSIGNED.all; 
+use IEEE.NUMERIC_STD.all;
+
+entity AFISOR is
+	port (CLK: in STD_LOGIC;	   
+	TIMP: in NATURAL;
+	UNITATI, ZECI, SUTE, MII: in STD_LOGIC_VECTOR(3 downto 0);
+	A_TO_G: out STD_LOGIC_VECTOR(6 downto 0);
+	AN: out STD_LOGIC_VECTOR(3 downto 0));
+end AFISOR;
+
+architecture AFISOR_ARH of AFISOR is  
+
+--signal DIGIT: STD_LOGIC_VECTOR(3 downto 0) := "0000";	 
+signal DIGIT: NATURAL;
+signal COUNT: STD_LOGIC_VECTOR(1 downto 0) := "00";
+signal AEN: STD_LOGIC_VECTOR(3 downto 0) := "0001"; --cifra 0 mereu pornita 
+
+component BCD_7_DECODER
+	port(inputBCD : in NATURAL;
+	outputBCD : out STD_LOGIC_VECTOR(6 downto 0));
+end component;
+
+begin	
+	
+	ACTIVARE_ANOZI:process(CLK)
+	begin 
+		if (TIMP <= 9) then
+			AEN(0) <= '1';
+			AEN(1) <= '0';
+			AEN(2) <= '0'; 
+			AEN(3) <= '0';
+		elsif (TIMP < 100) then
+			AEN(0) <= '1';
+			AEN(1) <= '1';	
+			AEN(2) <= '0'; 
+			AEN(3) <= '0';
+		elsif (TIMP < 1000) then
+			AEN(0) <= '1';
+			AEN(1) <= '1';
+			AEN(2) <= '1';  
+			AEN(3) <= '0';
+		elsif (TIMP < 10000) then
+			AEN(0) <= '1';
+			AEN(1) <= '1';
+			AEN(2) <= '1'; 
+			AEN(3) <= '1';
+		end if;
+	end process ACTIVARE_ANOZI;
+	
+	--numarator pe 2 biti
+	CTR: process(CLK)
+	begin
+		if (COUNT = "UU") then
+			COUNT <= "00";
+		elsif (CLK'EVENT and CLK = '1' and CLK'LAST_VALUE = '0') then
+			COUNT <= COUNT + 1;
+		end if;
+	end process;
+
+	--MUX4
+	with COUNT select
+		DIGIT <= to_integer(unsigned(unitati)) when "00", to_integer(unsigned(zeci)) when "01", to_integer(unsigned(sute)) when "10", to_integer(unsigned(mii)) when others;
+	  
+	--BCD_7SEGM
+	BCD: BCD_7_DECODER port map (DIGIT, A_TO_G);
+	
+	--selectare anod
+	ANODE: process(COUNT)
+	begin
+		if (AEN(conv_integer(COUNT)) = '1') then
+			AN <= (others => '1');
+			AN(conv_integer(COUNT)) <= '0';
+		else
+			AN <= "1111";
+		end if;
+	end process;
+	
+end AFISOR_ARH;
+
+-----------
+
+library IEEE;				
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity GET_DATA is
+	port (MODE, BUTON_P, BUTON_T, BUTON_V, PRESPALARE_MANUAL, CLATIRE_MANUAL: in STD_LOGIC;
+	PRESPALARE, CLATIRE_SUPL: out STD_LOGIC;
+	VITEZA, TEMPERATURA: out INTEGER);
+end GET_DATA;
+
+architecture GET_DATA_ARCH of GET_DATA is 
+
+--programul selectat
+signal OUT_CTR_AUTO: STD_LOGIC_VECTOR(2 downto 0);	
+
+--temperatura 
+signal T_OUT_MANUAL, T_OUT_AUTO, SEL_TEMPERATURA: STD_LOGIC_VECTOR(1 downto 0);	
+
+--viteza
+signal V_OUT_MANUAL, V_OUT_AUTO, SEL_VITEZA: STD_LOGIC_VECTOR(1 downto 0);
+
+--prespalare si clatire intermediare 
+signal PRESPALARE_AUTO, CLATIRE_SUPL_AUTO: STD_LOGIC;
+
+component COUNTER_GET
+	generic (limita: INTEGER := 4;
+	N : integer := 1);
+	port (CLR, CLK: in STD_LOGIC;
+	Q: out STD_LOGIC_VECTOR((N - 1) downto 0));
+end component; 	 
+
+component MUX_4TO1_INTEGER
+	port (SEL: in STD_LOGIC_VECTOR(1 downto 0);
+	I0, I1, I2, I3: in INTEGER;
+	Y: out INTEGER);
+end component;
+
+component MUX_PROGRAM
+	port (SEL: in STD_LOGIC_VECTOR(2 downto 0);
+	I0, I1, I2, I3, I4: in  STD_LOGIC_VECTOR(1 downto 0);
+	Y: out STD_LOGIC_VECTOR(1 downto 0));
+end component;	
+
+component MUX_PROGRAM_PRESP_CLT
+	port (SEL: in STD_LOGIC_VECTOR(2 downto 0);
+	I0, I1, I2, I3, I4: in STD_LOGIC;
+	Y: out STD_LOGIC);
+end component;
+
+component MUX_2TO1
+	generic (N: integer := 2);
+	port (SEL: in STD_LOGIC;
+	A, B: in STD_LOGIC_VECTOR((N - 1) downto 0);
+	Y: out STD_LOGIC_VECTOR((N - 1) downto 0));
+end component; 
+
+component MUX_2TO1_BIT 
+	port (SEL: in STD_LOGIC;
+	A, B: in STD_LOGIC;
+	Y: out STD_LOGIC);
+end component;
+	
+begin
+	
+NR_SEL_AUTO: COUNTER_GET generic map (4, 3) port map ('0', BUTON_P, OUT_CTR_AUTO);
+	
+NR_SEL_MANUAL_TEMP: COUNTER_GET generic map (3, 2) port map ('0', BUTON_T, T_OUT_MANUAL);
+MUX_AUTO_TEMP: MUX_PROGRAM port map (OUT_CTR_AUTO, "00", "10", "01", "01", "11", T_OUT_AUTO); 
+MUX_TEMP: MUX_2TO1 generic map (2) port map (MODE, T_OUT_MANUAL, T_OUT_AUTO, SEL_TEMPERATURA);
+MUX_MANUAL_TEMP: MUX_4TO1_INTEGER port map (SEL_TEMPERATURA, 30, 40, 60, 90, TEMPERATURA);	
+
+NR_SEL_MANUAL_VIT: COUNTER_GET generic map (2, 2) port map ('0', BUTON_V, V_OUT_MANUAL);
+MUX_AUTO_VIT: MUX_PROGRAM port map (OUT_CTR_AUTO, "10", "00", "01", "01", "10", V_OUT_AUTO); 
+MUX_VITEZA: MUX_2TO1 generic map (2) port map (MODE, V_OUT_MANUAL, V_OUT_AUTO, SEL_VITEZA);
+MUX_MANUAL_VIT: MUX_4TO1_INTEGER port map (SEL_VITEZA, 800, 1000, 1200, 0, VITEZA);	
+
+MUX_AUTO_PRESP: MUX_PROGRAM_PRESP_CLT port map (OUT_CTR_AUTO, '0', '0', '0', '1', '0', PRESPALARE_AUTO);
+MUX_AUTO_CLT_SUP: MUX_PROGRAM_PRESP_CLT port map (OUT_CTR_AUTO, '0', '0', '1', '0', '1', CLATIRE_SUPL_AUTO);
+MUX_MANUAL_PRESP: MUX_2TO1_BIT port map (MODE, PRESPALARE_MANUAL, PRESPALARE_AUTO, PRESPALARE);
+MUX_MANUAL_CLT_SUP: MUX_2TO1_BIT port map (MODE, CLATIRE_MANUAL, CLATIRE_SUPL_AUTO, CLATIRE_SUPL);
+
+end GET_DATA_ARCH;
+
+------------
+
+library IEEE;
+use IEEE.STD_logic_1164.all; 
+use IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity MUX_4TO1_INTEGER is
+	port (SEL: in STD_LOGIC_VECTOR(1 downto 0);
+	I0, I1, I2, I3: in INTEGER;
+	Y: out INTEGER);
+end MUX_4TO1_INTEGER;
+
+architecture MUX_4TO1_INTEGER_ARCH of MUX_4TO1_INTEGER is
+
+begin	 
+	process(SEL, I0, I1, I2, I3)  
+	begin
+		case SEL is
+			when "00" => Y <= I0;
+			when "01" => Y <= I1;
+			when "10" => Y <= I2;
+			when "11" => Y <= I3; 
+			when others => Y <= 0;
+		end case;
+	end process;
+	
+end MUX_4TO1_INTEGER_ARCH;
+
+-------------
+
+library IEEE;
+use IEEE.STD_logic_1164.all; 
+use IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity MUX_PROGRAM is
+	port (SEL: in STD_LOGIC_VECTOR(2 downto 0);
+	I0, I1, I2, I3, I4: in  STD_LOGIC_VECTOR(1 downto 0);
+	Y: out STD_LOGIC_VECTOR(1 downto 0));
+end MUX_PROGRAM;
+
+architecture MUX_PROGRAM_ARCH of MUX_PROGRAM is	 
+
+begin	 
+	process(SEL, I0, I1, I2, I3)  
+	begin
+		case SEL is
+			when "000" => Y <= I0;
+			when "001" => Y <= I1;
+			when "010" => Y <= I2; 
+			when "011" => Y <= I3;
+			when others => Y <= I4;
+		end case;
+	end process;
+	
+end MUX_PROGRAM_ARCH;
+
+---------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;  
+use IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity COUNTER_GET is
+	generic (limita: INTEGER := 4;
+	N : integer := 1);
+	port (CLR, CLK: in STD_LOGIC;
+	Q: out STD_LOGIC_VECTOR((N - 1) downto 0));
+end COUNTER_GET;
+
+architecture COUNTER_GET_ARCH of COUNTER_GET is
+
+signal COUNT: STD_LOGIC_VECTOR((N - 1) downto 0);
+
+begin
+	process(CLK, CLR)
+	begin
+		if (CLR = '1' or COUNT = "U") then
+			COUNT <= (others => '0');
+		elsif (CLK'EVENT and CLK = '1' and CLK'LAST_VALUE = '0') then 	  
+			if (COUNT = limita) then
+				COUNT <= (others => '0');
+			else COUNT <= COUNT + 1; 
+			end if;
+		end if;
+	end process;
+	
+	Q <= COUNT;	
+	
+end COUNTER_GET_ARCH;
+
+----------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all; 
+use IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity MUX_2TO1 is
+	generic (N: integer := 2);
+	port (SEL: in STD_LOGIC;
+	A, B: in STD_LOGIC_VECTOR((N - 1) downto 0);
+	Y: out STD_LOGIC_VECTOR((N - 1) downto 0));
+end MUX_2TO1;
+
+architecture MUX_2TO1_ARCH of MUX_2TO1 is  
+
+begin
+	process(SEL, A, B)
+	begin
+		if (SEL = '0') then
+			Y <= A;
+		else 
+			Y <= B;
+		end if;
+	end process;
+	
+end MUX_2TO1_ARCH;
+
+-------------
+
+library IEEE; 
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.STD_LOGIC_UNSIGNED.all;   
+
+
+entity TIME_CALC is
+	port (TEMPERATURA, TIMP_SPALARE_PRINCIPALA, TIMP_CLATIRE, TIMP_CENTRIFUGARE, TIMP_PRESPALARE, TIMP_APA: in INTEGER;
+	PRESPALARE, CLATIRE_SUPL: in STD_LOGIC;
+	TIMP: out NATURAL);
+end TIME_CALC;
+
+architecture TIME_CALC_ARCH of TIME_CALC is	
+
+begin
+	process (TEMPERATURA, PRESPALARE, CLATIRE_SUPL)
+	
+	variable TIMP_INCALZIRE: INTEGER := 0;
+	variable SUMA_TIMP: INTEGER := 0; 
+	
+	begin	
+		case TEMPERATURA is
+			when 30 => TIMP_INCALZIRE := 3;
+			when 40 => TIMP_INCALZIRE := 5;
+			when 60 => TIMP_INCALZIRE := 9;
+			when 90 => TIMP_INCALZIRE := 15; 
+			when others => TIMP_INCALZIRE := 0;
+		end case;	  
+		SUMA_TIMP := TIMP_INCALZIRE + TIMP_SPALARE_PRINCIPALA + TIMP_CLATIRE + TIMP_CENTRIFUGARE + 4 * TIMP_APA;
+		if (PRESPALARE = '1') then
+			SUMA_TIMP := SUMA_TIMP + TIMP_PRESPALARE + 2 * TIMP_APA;
+		end if;
+		if (CLATIRE_SUPL = '1') then
+			   SUMA_TIMP := SUMA_TIMP + TIMP_CLATIRE + 2 * TIMP_APA + TIMP_INCALZIRE;
+		end if;	 
+		TIMP <= SUMA_TIMP;
+	end process; 
+	
+end TIME_CALC_ARCH;
+
+-------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity NEXT_STATE_LOGIC is
+	port(START, PRESPALARE, CLATIRE_SUPL, USA, CLK: in STD_LOGIC; 
+	TEMPERATURA: in INTEGER;
+	PRESPALARE_OUT, CLATIRE_SUPL_OUT, ACTIV, ROTIRE, ALIMENTARE, INCALZIRE, EVACUARE, USA_BLOCATA: out STD_LOGIC);
+end NEXT_STATE_LOGIC;  
+
+architecture NEXT_STATE_LOGIC_ARCH of NEXT_STATE_LOGIC is 
+	
+--stari
+type state_type is (inactiv, blocare_usa, alim_apa, incalzire_apa, presp, evac, spalare, clt, clatire_sup, centrifugare, deblocare_usa);
+signal STARE: state_type := inactiv; 
+
+--contor pentru timer (durata fiecarei etape/stari)
+signal COUNT: INTEGER := 0;
+
+--timpi
+constant TIMP_SPALARE_PRINCIPALA: INTEGER := 120;
+constant TIMP_CLATIRE: INTEGER := 60;
+constant TIMP_CENTRIFUGARE: INTEGER := 60;
+constant TIMP_PRESPALARE: INTEGER := 60;
+constant TIMP_APA: INTEGER := 6;	  
+
+begin	
+	next_state: process(CLK)
+	
+	variable TIMP_INCALZIRE: INTEGER := 0; 	
+	variable CONDITII: STD_LOGIC_VECTOR(3 downto 0) := "0000";
+	
+		begin
+			case TEMPERATURA is
+				when 30 => TIMP_INCALZIRE := 3;
+				when 40 => TIMP_INCALZIRE := 5;
+				when 60 => TIMP_INCALZIRE := 9;
+				when 90 => TIMP_INCALZIRE := 15; 
+				when others => TIMP_INCALZIRE := 0;	
+			end case;
+		if (CLK = '1' and CLK'EVENT and CLK'LAST_VALUE = '0') then
+			if (STARE = inactiv and START = '1' and USA = '1') then --daca masina a fost pornita si usa e inchisa
+					STARE <= blocare_usa; --blocare usa 	
+			end if;			
+				case STARE is   
+					when blocare_usa => 
+						STARE <= alim_apa; --alimentare apa
+					when alim_apa =>    
+							if COUNT = TIMP_APA - 1 then
+								 if CONDITII(1) = '0' then --nu am spalat inca
+									STARE <= incalzire_apa; --incalzire apa	 
+								elsif   CONDITII(2) = '0' then STARE <= clt; --clatire (am spalat, nu am clatit)
+								elsif  (CLATIRE_SUPL = '1' and CONDITII(3) = '0') then
+									STARE <= clatire_sup; --clatire suplimentara (am spalat, am clatit, nu am clatit suplimentar, avem clatire suplimentara de facut)
+								end if;	
+								COUNT <= 0;
+							else COUNT <= COUNT + 1;					 			
+							end if;	   
+					when incalzire_apa => 
+							if COUNT = TIMP_INCALZIRE - 1 then
+								if PRESPALARE = '1' then --am incalzit apa
+									if CONDITII(0) = '0' then --trebuie sa prespalam
+										STARE <= presp; --prespalare  
+									else STARE <= spalare; --am prespalat, urmeaza spalare
+									end if;
+								else STARE <= spalare; --nu trebuie sa prespalam 
+								end if;
+								COUNT <= 0;
+							else COUNT <= COUNT + 1;
+							end if;
+					when presp =>   
+							if COUNT = TIMP_PRESPALARE - 1 then
+								STARE <= evac; --evacuare
+								CONDITII(0) := '1';
+								COUNT <= 0;
+							else COUNT <= COUNT + 1;
+							end if;
+					when evac => 	  
+							if COUNT = TIMP_APA - 1 then
+									if (CLATIRE_SUPL = '0' and CONDITII(2) = '1') or (CLATIRE_SUPL = '1' and CONDITII(3) = '1') then
+										STARE <= centrifugare; --centrifugare	
+									else STARE <= alim_apa; --alimentare apa
+									end if;
+								COUNT <= 0;
+							else COUNT <= COUNT + 1;
+							end if;
+					when spalare => 	  
+							if COUNT = TIMP_SPALARE_PRINCIPALA - 1 then
+								STARE <= evac; --evacuare
+								CONDITII(1) := '1';
+								COUNT <= 0;
+							else COUNT <= COUNT + 1;
+							end if;
+					when clt => 	  
+							if COUNT = TIMP_CLATIRE - 1 then
+								STARE <= evac; --evacuare  
+								CONDITII(2) := '1';	
+								COUNT <= 0;
+							else COUNT <= COUNT + 1;
+							end if;	 
+					when clatire_sup => 	  
+							if COUNT = TIMP_CLATIRE - 1 then
+								STARE <= evac; --evacuare  
+								CONDITII(3) := '1';
+								COUNT <= 0;
+							else COUNT <= COUNT + 1;
+							end if;
+					when centrifugare => 	  
+							if COUNT = TIMP_CENTRIFUGARE - 1 then
+								STARE <= deblocare_usa; --deblocare_usa
+								COUNT <= 0;
+							else COUNT <= COUNT + 1;
+							end if;				
+					when deblocare_usa => 	  
+							if COUNT = 6 - 1 then
+								STARE <= inactiv; --inactiv	
+								COUNT <= 0;
+							else COUNT <= COUNT + 1;
+							end if;
+					when others => 
+					CONDITII := "0000";
+					end case; 
+				end if;
+	end process;	  
+	
+	outputs: process(STARE)
+		begin
+			case STARE is
+				when inactiv =>				    
+					ACTIV <= '0';
+					ROTIRE <= '0';
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '0';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '0';
+				when blocare_usa => 				  
+					ACTIV <= '1';
+					ROTIRE <= '0'; 
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '0';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '1';
+				when alim_apa => 				  
+					ACTIV <= '1';
+					ROTIRE <= '0'; 
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '1';
+					INCALZIRE <= '0';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '1';
+				when incalzire_apa => 		 		
+					ACTIV <= '1';
+					ROTIRE <= '0'; 
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '1';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '1';
+				when presp => 				
+					ACTIV <= '1';
+					ROTIRE <= '1';	 
+					PRESPALARE_OUT <= '1'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '0';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '1';
+				when evac => 				
+					ACTIV <= '1';
+					ROTIRE <= '0'; 
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '0';
+					EVACUARE <= '1';
+					USA_BLOCATA <= '1';	
+				when spalare => 				
+					ACTIV <= '1';
+					ROTIRE <= '1'; 
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '0';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '1';
+				when clt => 				
+					ACTIV <= '1';
+					ROTIRE <= '1'; 
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '0';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '1';	
+				when clatire_sup => 				
+					ACTIV <= '1';
+					ROTIRE <= '1';
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '1';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '0';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '1';
+				when centrifugare => 				
+					ACTIV <= '1';
+					ROTIRE <= '1';
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '0';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '1';
+				when deblocare_usa =>
+					ACTIV <= '1';
+					ROTIRE <= '0';	
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '0';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '1';	
+				when others => 
+					ACTIV <= '0';
+					ROTIRE <= '0';
+					PRESPALARE_OUT <= '0'; 
+					CLATIRE_SUPL_OUT <= '0';
+					ALIMENTARE <= '0';
+					INCALZIRE <= '0';
+					EVACUARE <= '0';
+					USA_BLOCATA <= '0';
+				end case;
+	end process;  
+	
+end NEXT_STATE_LOGIC_ARCH; 
+
+--------------
+
+library IEEE;
+use IEEE.STD_logic_1164.all; 
+use IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity MUX_PROGRAM_PRESP_CLT is
+	port (SEL: in STD_LOGIC_VECTOR(2 downto 0);
+	I0, I1, I2, I3, I4: in STD_LOGIC;
+	Y: out STD_LOGIC);
+end MUX_PROGRAM_PRESP_CLT;
+
+architecture MUX_PROGRAM_PRESP_CLT_ARCH of MUX_PROGRAM_PRESP_CLT is	  
+
+begin	 
+	process (SEL, I0, I1, I2, I3)  
+	begin
+		case SEL is
+			when "000" => Y <= I0;
+			when "001" => Y <= I1;
+			when "010" => Y <= I2; 
+			when "011" => Y <= I3;
+			when others => Y <= I4;
+		end case;
+	end process; 
+	
+end MUX_PROGRAM_PRESP_CLT_ARCH;
+	
+
+------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all; 
+use IEEE.STD_LOGIC_UNSIGNED.all;
+
+entity MUX_2TO1_BIT is
+	port (SEL: in STD_LOGIC;
+	A, B: in STD_LOGIC;
+	Y: out STD_LOGIC);
+end MUX_2TO1_BIT;
+
+architecture MUX_2TO1_BIT_ARCH of MUX_2TO1_BIT is 
+
+begin
+	process(SEL, A, B)
+	begin
+		if (SEL = '0') then
+			Y <= A;
+		else Y <= B;
+		end if;
+	end process; 
+	
+end MUX_2TO1_BIT_ARCH;
+
+------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.all; 
+use IEEE.STD_LOGIC_UNSIGNED.all;
+use IEEE.NUMERIC_STD.all;
+
+entity BIN_TO_BCD is
+	port(BINAR: in STD_LOGIC_VECTOR(11 downto 0);
+	UNITATI: out STD_LOGIC_VECTOR(3 downto 0);
+	ZECI: out STD_LOGIC_VECTOR(3 downto 0);
+	SUTE: out STD_LOGIC_VECTOR(3 downto 0);	
+	MII: out STD_LOGIC_VECTOR(3 downto 0));
+end BIN_TO_BCD;
+
+architecture A_BIN_TO_BCD of BIN_TO_BCD is
+begin
+	TO_BCD:process(BINAR)
+	variable TEMP: STD_LOGIC_VECTOR(11 downto 0);	
+	variable BCD: UNSIGNED(15 downto 0) := (others => '0');
+	--mii: bcd(15 downto 12); sute: bcd(11 donwto 8); zeci: bcd(7 downto 4); unitati: bcd(3 downto 0)  
+	begin
+		BCD := (others => '0');
+		TEMP(11 downto 0) := BINAR;
+		for I in 0 to 11 loop
+			if BCD(3 downto 0) > 4 then	
+				BCD(3 downto 0) := BCD(3 downto 0) + 3;
+			end if;
+			if BCD(7 downto 4) > 4 then	
+				BCD(7 downto 4) := BCD(7 downto 4) + 3;
+			end if;
+			if BCD(11 downto 8) > 4 then	
+				BCD(11 downto 8) := BCD(11 downto 8) + 3;
+			end if;
+			BCD := BCD(14 downto 0) & TEMP(11);
+			TEMP := TEMP(10 downto 0) & '0';
+		end loop;
+		
+		UNITATI <= STD_LOGIC_VECTOR(BCD(3 downto 0)); 
+		ZECI <= STD_LOGIC_VECTOR(BCD(7 downto 4));
+		SUTE <= STD_LOGIC_VECTOR(BCD(11 downto 8));
+		MII <= STD_LOGIC_VECTOR(BCD(15 downto 12));	
+		
+	end process TO_BCD;
+	
+	end A_BIN_TO_BCD;
+
+-------------

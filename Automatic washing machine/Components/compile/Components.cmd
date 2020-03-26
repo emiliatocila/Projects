@@ -1,0 +1,1 @@
+-w -s "C:\My_Designs\wm\MasinaDeSpalat\library.cfg"  -j "C:\My_Designs\wm\MasinaDeSpalat\Components\projlib.cfg"  -d "C:\My_Designs\wm\MasinaDeSpalat\Components\compile\"  -work Components -o2 -e 100 "C:\My_Designs\wm\MasinaDeSpalat\Components\src\DIVIDER.vhd" 

@@ -1,0 +1,83 @@
+[Project]
+Current Flow=Generic
+VCS=0
+version=3
+Current Config=compile
+
+[Configurations]
+compile=components
+
+[Library]
+Components=.\Components\Components.lib
+
+[Settings]
+AccessRead=0
+AccessReadWrite=0
+AccessACCB=0
+AccessACCR=0
+AccessReadWriteSLP=0
+AccessReadTopLevel=1
+DisableC=1
+ENABLE_ADV_DATAFLOW=0
+FLOW_TYPE=HDL
+LANGUAGE=VHDL
+REFRESH_FLOW=1
+FLOWTOOLS=NONE
+FAMILY=
+
+[LocalVerilogSets]
+EnableSLP=1
+EnableDebug=0
+
+[LocalVhdlSets]
+CompileWithDebug=0
+
+[$LibMap$]
+Components=.
+Active_lib=
+
+[SpecTracer]
+WindowVisible=0
+
+[HierarchyViewer]
+HierarchyInformation=automat|AUTOMAT_ARCH|0     
+ShowHide=ShowTopLevel
+Selected=
+SortInfo=u
+
+[Files]
+/COUNTER_GET.vhd=-1
+/BCD_7SEGM.vhd=-1
+/DIVIDER.vhd=-1
+/MUX_2TO1_BIT.vhd=-1
+/MUX_2TO1.vhd=-1
+/MUX_PROGRAM_PRESP_CLT.vhd=-1
+/MUX_PROGRAM.vhd=-1
+/TIMP_AFISOR.vhd=-1
+/TIME_CALC.vhd=-1
+/NEXT_STATE_LOGIC.vhd=-1
+/MUX_4TO1_INTEGER.vhd=-1
+/DEBOUNCE.vhd=-1
+/AFISOR.vhd=-1
+/GET_DATA.vhd=-1
+/AUTOMAT.vhd=-1
+/CONVERSIE.vhd=-1
+
+[Files.Data]
+.\src\COUNTER_GET.vhd=VHDL Source Code
+.\src\BCD_7SEGM.vhd=VHDL Source Code
+.\src\DIVIDER.vhd=VHDL Source Code
+.\src\MUX_2TO1_BIT.vhd=VHDL Source Code
+.\src\MUX_2TO1.vhd=VHDL Source Code
+.\src\MUX_PROGRAM_PRESP_CLT.vhd=VHDL Source Code
+.\src\MUX_PROGRAM.vhd=VHDL Source Code
+.\src\TIMP_AFISOR.vhd=VHDL Source Code
+.\src\TIME_CALC.vhd=VHDL Source Code
+.\src\NEXT_STATE_LOGIC.vhd=VHDL Source Code
+.\src\MUX_4TO1_INTEGER.vhd=VHDL Source Code
+.\src\DEBOUNCE.vhd=VHDL Source Code
+.\src\AFISOR.vhd=VHDL Source Code
+.\src\GET_DATA.vhd=VHDL Source Code
+.\src\AUTOMAT.vhd=VHDL Source Code
+.\src\CONVERSIE.vhd=VHDL Source Code
+

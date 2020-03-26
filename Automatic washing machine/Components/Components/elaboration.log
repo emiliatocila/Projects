@@ -1,0 +1,51 @@
+Active-HDL 10.3.3559.6081  2017-05-11 15:25:51
+
+Elaboration top modules:
+Architecture                  AUTOMAT_ARCH(AUTOMAT)
+
+
+--------------------------------------------------------------------------------------------------------------------------
+Entity                 | Architecture               | Library    | Info | Compiler Version          | Compilation Options
+--------------------------------------------------------------------------------------------------------------------------
+AUTOMAT                | AUTOMAT_ARCH               | components |      | 10.3.3559.6081  (Windows) | -O3
+CLOCK_DIVIDER          | CLOCK_DIVIDER_ARCH         | components |      | 10.3.3559.6081  (Windows) | -O3
+DEBOUNCE4_PUSH_BUTTONS | DEBOUNCE4_ARCH             | components |      | 10.3.3559.6081  (Windows) | -O3
+GET_DATA               | GET_DATA_ARCH              | components |      | 10.3.3559.6081  (Windows) | -O3
+TIME_CALC              | TIME_CALC_ARCH             | components |      | 10.3.3559.6081  (Windows) | -O3
+NEXT_STATE_LOGIC       | NEXT_STATE_LOGIC_ARCH      | components |      | 10.3.3559.6081  (Windows) | -O3
+TIMP_AFISOR            | TIMP_AFISOR_ARCH           | components |      | 10.3.3559.6081  (Windows) | -O3
+AFISOR                 | AFISOR_ARH                 | components |      | 10.3.3559.6081  (Windows) | -O3
+BIN_TO_BCD             | A_BIN_TO_BCD               | components |      | 10.3.3559.6081  (Windows) | -O3
+COUNTER_GET            | COUNTER_GET_ARCH           | components |      | 10.3.3559.6081  (Windows) | -O3
+MUX_PROGRAM            | MUX_PROGRAM_ARCH           | components |      | 10.3.3559.6081  (Windows) | -O3
+MUX_2TO1               | MUX_2TO1_ARCH              | components |      | 10.3.3559.6081  (Windows) | -O3
+MUX_4TO1_INTEGER       | MUX_4TO1_INTEGER_ARCH      | components |      | 10.3.3559.6081  (Windows) | -O3
+MUX_PROGRAM_PRESP_CLT  | MUX_PROGRAM_PRESP_CLT_ARCH | components |      | 10.3.3559.6081  (Windows) | -O3
+MUX_2TO1_BIT           | MUX_2TO1_BIT_ARCH          | components |      | 10.3.3559.6081  (Windows) | -O3
+BCD_7_DECODER          | BCD_7_DECODER_ARCH         | components |      | 10.3.3559.6081  (Windows) | -O3
+--------------------------------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------------------------
+VHDL Package                                        | Library    | Info | Compiler Version          | Compilation Options
+--------------------------------------------------------------------------------------------------------------------------
+standard                                            | std        |      |                           | <unavailable>
+TEXTIO                                              | std        |      | 10.3.3559.6081  (Windows) |  -2008
+std_logic_1164                                      | ieee       |      | 10.3.3559.6081  (Windows) |  -2008
+std_logic_arith                                     | ieee       |      | 10.3.3559.6081  (Windows) | <unavailable>
+STD_LOGIC_UNSIGNED                                  | ieee       |      | 10.3.3559.6081  (Windows) | <unavailable>
+NUMERIC_STD                                         | ieee       |      | 10.3.3559.6081  (Windows) |  -2008
+--------------------------------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------------------------
+Library                                             | Comment
+--------------------------------------------------------------------------------------------------------------------------
+components                                          | None
+ieee                                                | Standard IEEE packages library
+std                                                 | Standard VHDL library
+--------------------------------------------------------------------------------------------------------------------------
+
+
+Simulation Options: asim -O5 +access +r +m+AUTOMAT AUTOMAT AUTOMAT_ARCH
+
+
+The performance of simulation is reduced. Version Student Edition

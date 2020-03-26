@@ -1,0 +1,34 @@
+
+net "SEL_MODE" loc = G18;			
+net "PRESPALARE_MANUAL" loc = H18;		
+net "CLATIRE_SUPL_MANUAL" loc = K18;	
+net "USA" loc = K17;			
+
+net "START" loc = B18;		
+net "BUTON_AUTO" loc = D18;	
+net "BUTON_TEMPERATURA" loc = E18;	
+net "BUTON_VITEZA" loc = H13;		
+
+
+net "ACTIV" loc = J14;			
+net "USA_BLOCATA" loc = J15;
+net "ALIMENTARE" loc = K15; 
+net "INCALZIRE" loc = K14;			
+net "ROTIRE" loc = E16;
+net "EVACUARE" loc = P16;
+net "PRESPALARE_OUT" loc = E4 ;		
+net "CLATIRE_SUPL_OUT" loc = P4 ;	
+
+net "AN<0>" loc = F17;
+net "AN<1>" loc = H17;
+net "AN<2>" loc = C18;
+net "AN<3>" loc = F15;
+net "A_TO_G<0>" loc = H14;
+net "A_TO_G<1>" loc = J17;
+net "A_TO_G<2>" loc = G14;
+net "A_TO_G<3>" loc = D16;
+net "A_TO_G<4>" loc = D17;
+net "A_TO_G<5>" loc = F18;
+net "A_TO_G<6>" loc = L18;
+
+net "CLK" loc = B8; 
