@@ -1,0 +1,8 @@
+CREATE TABLE User (id INTEGER PRIMARY KEY UNIQUE NOT NULL, firstName STRING NOT NULL, lastName STRING NOT NULL, username STRING UNIQUE NOT NULL, password STRING NOT NULL, isAdmin INTEGER NOT NULL);
+CREATE TABLE Client (id INTEGER PRIMARY KEY UNIQUE NOT NULL, firstName STRING NOT NULL, lastName STRING NOT NULL, idCardNr STRING UNIQUE NOT NULL, cnp VARCHAR UNIQUE NOT NULL, address STRING NOT NULL);
+CREATE TABLE Account (id INTEGER PRIMARY KEY UNIQUE NOT NULL, idClient INTEGER NOT NULL REFERENCES Client (id), type STRING NOT NULL, amount INTEGER NOT NULL, dateOfCreation STRING NOT NULL);
+CREATE TABLE Activity (id INTEGER PRIMARY KEY UNIQUE NOT NULL, idEmployee INTEGER NOT NULL REFERENCES User (id), activity STRING NOT NULL, involved STRING NOT NULL, date STRING NOT NULL);
+INSERT INTO User (id, firstName, lastName, username, password, isAdmin) VALUES (1, 'Emilia', 'Tocila', 'emiliatocila', 'password978', 1);
+INSERT INTO User (id, firstName, lastName, username, password, isAdmin) VALUES (2, 'Andreea', 'Pricopi', 'andreeapricopi', 'andreea', 0);
+INSERT INTO Client (id, firstName, lastName, idCardNr, cnp, address) VALUES (2, 'Claudia', 'Tocila', 'XC623544', 2980109046563, 'Baladei 7');
+INSERT INTO Account (id, idClient, type, amount, dateOfCreation) VALUES (1, 2, 'credit', 870, '2019-12-21');

@@ -1,0 +1,13 @@
+EMPLOYEE REPORT
+ID: 5, Catalin Todea
+2020-03-28 00:00:00 TO 2020-03-29 23:59:59
+Activity ID: 1, Type: ADD NEW CLIENT, Involving: Paul Masaric, On date: 2020-03-29
+Activity ID: 3, Type: UPDATE CLIENT, Involving: Paul Masaric, On date: 2020-03-29
+Activity ID: 4, Type: ADD NEW ACCOUNT, Involving: Account with ID 6 for client with ID 6, On date: 2020-03-29
+Activity ID: 5, Type: ADD NEW ACCOUNT, Involving: Account with ID 7 for client with ID 6, On date: 2020-03-29
+Activity ID: 6, Type: DELETE ACCOUNT, Involving: Account with ID 7, On date: 2020-03-29
+Activity ID: 7, Type: UPDATE ACCOUNT, Involving: Account with ID 6, On date: 2020-03-29
+Activity ID: 8, Type: TRANSFER MONEY BETWEEN ACCOUNTS, Involving: From account with ID 2 to account with ID 5, On date: 2020-03-29
+Activity ID: 9, Type: TRANSFER MONEY BETWEEN ACCOUNTS, Involving: From account with ID 1 to account with ID 6, On date: 2020-03-29
+Activity ID: 10, Type: TRANSFER MONEY BETWEEN ACCOUNTS, Involving: From account with ID 2 to account with ID 6, On date: 2020-03-29
+Activity ID: 11, Type: PAY UTILITY BILL - Electrica, Involving: Client Paul Masaric with account ID 6, On date: 2020-03-29

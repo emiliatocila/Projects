@@ -1,0 +1,5 @@
+UTILITY BILL
+Paul Masaric
+2020-03-29
+Electrica..................125 lei
+Current balance: 785 lei

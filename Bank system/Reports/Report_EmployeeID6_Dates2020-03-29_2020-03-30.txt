@@ -1,0 +1,6 @@
+EMPLOYEE REPORT
+ID: 6, Ana Popa
+2020-03-29 00:00:00 TO 2020-03-30 23:59:59
+Activity ID: 12, Type: UPDATE CLIENT, Involving: Paul Masaric, On date: 2020-03-30
+Activity ID: 13, Type: ADD NEW ACCOUNT, Involving: Account with ID 7 for client with ID 6, On date: 2020-03-30
+Activity ID: 14, Type: TRANSFER MONEY BETWEEN ACCOUNTS, Involving: From account with ID 7 to account with ID 5, On date: 2020-03-30
