@@ -1,0 +1,61 @@
+package ro.utcluj.Client.View;
+
+import ro.utcluj.ClientAndServer.Model.Playlist;
+import ro.utcluj.ClientAndServer.Model.Song;
+import ro.utcluj.ClientAndServer.Model.SongSugg;
+import ro.utcluj.ClientAndServer.Model.User;
+
+import java.util.List;
+
+public interface IRegularView {
+    void init();
+    void setFriends(List<User> friends);
+    void setFriendRequests(List<User> friendRequests);
+    void setPendingFriendRequests(List<User> pendingFriendRequests);
+    void setSongSuggSent(List<SongSugg> songSuggSent);
+    void setSongSuggReceived(List<SongSugg> songSuggReceived);
+    void setSuggSongsReceived(List<Song> suggSongsReceived);
+    void setWhoSuggested(List<String> whoSuggested);
+    void setSongs(List<Song> songs);
+    void setPlaylists(List<Playlist> playlists);
+    void setPlaylistSongs(List<Song> songs);
+    void clearMainPanel();
+    int getUserId();
+    String getUserUsername();
+    List<Object> addSongSuggOptionPane(List<User> friends);
+    int addFriendsOptionPane();
+    int createNewPlaylistOrAddToExistingOptionPane();
+    int liveNotificationOptionPane(Song newSuggSong, String whoSuggested);
+    int[] showSearchByOptionPane();
+    int createNewPlaylistOptionPane(SongSugg newSongSugg);
+    List<Object> addNewSongsToExistingPlaylistOptionPane(List<Playlist> playlists, SongSugg newSongSugg);
+    int confirmFriendRequest();
+    int denyFriendRequest();
+    int denySongSuggestion(SongSugg newSongSugg);
+    int deleteFriend();
+    int deleteSong();
+    int deletePlaylist();
+    String getNewFriendUsername();
+    String getCriteria();
+    String getPlaylistName();
+    List<Integer> getIdSongsForNewPlaylist();
+    int playSong();
+    void resetIdSongsForNewPlaylist();
+    void resetIdNewSongSugg();
+    void setFriendsOrFriendRequests(int val);
+    void setSongsOrSongSugg(int val);
+    void setPlaylistsOrPlaylistsSongs(int val);
+    int selectPlaylistToView();
+    int getIdOfPlaylistToView();
+    int getIdSongToDelete();
+    int getIdPlaylistToDelete();
+    int getIdToPlay();
+    String getUsernameFriendRequestToConfirm();
+    String getUsernameFriendRequestToDeny();
+    String getUsernameFriendToDelete();
+    int getNewIdSongSugg();
+    int getIdSongSuggConfirmed();
+    int getIdSongSuggDenied();
+    void setVisibleRegView(boolean value);
+    void showMessage(String message);
+}
