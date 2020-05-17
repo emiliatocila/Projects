@@ -3,7 +3,6 @@ package ro.utcluj.Server.Service;
 import ro.utcluj.ClientAndServer.Model.Playlist;
 import ro.utcluj.ClientAndServer.Model.Song;
 import ro.utcluj.Server.Repository.IPlaylistRepository;
-
 import java.util.List;
 
 public class PlaylistServiceImpl implements IPlaylistService {
@@ -29,11 +28,9 @@ public class PlaylistServiceImpl implements IPlaylistService {
     }
 
     @Override
-    public String createPlaylist(Playlist playlist) {
-        String name;
-        name = playlist.getName();
+    public String createPlaylist(int idUser, String name) {
         if (name.length() > 0) {
-            if (playlistRepository.createPlaylist(playlist) == -1)
+            if (playlistRepository.createPlaylist(new Playlist(idUser, name)) == -1)
                 return "Cannot create playlist!";
             else return "Playlist created successfully!";
         } else return "Playlist name must be at least 1 character long!";

@@ -1,10 +1,9 @@
 package ro.utcluj.Client.Controller;
 
-import ro.utcluj.Client.Client;
-import ro.utcluj.Client.ClientConnectionToServer;
 import ro.utcluj.Client.Report.IReport;
 import ro.utcluj.Client.Report.ReportFactory;
 import ro.utcluj.Client.View.LoginView;
+import ro.utcluj.ClientAndServer.Communication.IRequestHandler;
 import ro.utcluj.ClientAndServer.Model.Playlist;
 import ro.utcluj.ClientAndServer.Model.Song;
 import ro.utcluj.ClientAndServer.Model.User;
@@ -16,8 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class AdminController {
-    private static ClientConnectionToServer connection;
-    private final RequestHandler requestHandler;
+    private final IRequestHandler requestHandler;
     private final IAdminView adminView;
     private List<User> regUsers;
     private List<Song> songs;
@@ -26,9 +24,13 @@ public class AdminController {
 
     public AdminController(IAdminView adminView) {
         this.adminView = adminView;
-        connection = Client.getConnection();
         requestHandler = new RequestHandler();
         this.initUsersAndSongs();
+    }
+
+    public AdminController(IAdminView adminView, IRequestHandler requestHandler) {
+        this.adminView = adminView;
+        this.requestHandler = requestHandler;
     }
 
     public void initUsersAndSongs() {
@@ -38,16 +40,12 @@ public class AdminController {
     }
 
     public void initUsers() {
-        String encodedRequest = requestHandler.encodeRequest("SHOWALLUSERS", null);
-        String encodedResponse = connection.sendRequestToServer(encodedRequest);
-        regUsers = (List<User>) requestHandler.decodeResponse(encodedResponse, User.class);
+        regUsers = requestHandler.getResult("SHOWALLUSERS", null, User.class);
         adminView.setUsers(regUsers);
     }
 
     public void initSongs() {
-        String encodedRequest = requestHandler.encodeRequest("SHOWALLSONGS", null);
-        String encodedResponse = connection.sendRequestToServer(encodedRequest);
-        songs = (List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class);
+        songs = requestHandler.getResult("SHOWALLSONGS", null, Song.class);
         adminView.setSongs(songs);
     }
 
@@ -75,9 +73,10 @@ public class AdminController {
             String username = adminView.getUsername();
             String password = adminView.getPassword();
 
-            String encodedRequest = requestHandler.encodeRequest("INSERTUSER", "username=" + username + "#password=" + password + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String params = "";
+            params += "username=" + username + "#password=" + password + "#";
+
+            String message = (requestHandler.getResult("INSERTUSER", params, String.class)).get(0);
 
             adminView.showMessage(message);
             adminView.clearMainPanel();
@@ -94,10 +93,10 @@ public class AdminController {
             String album = adminView.getAlbum();
             String genre = adminView.getGenre();
 
-            String encodedRequest = requestHandler.encodeRequest("INSERTSONG", "title=" + title + "#artist=" +
-                                    artist + "#album=" + album + "#genre=" + genre + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String params = "";
+            params += "title=" + title + "#artist=" + artist + "#album=" + album + "#genre=" + genre + "#";
+
+            String message = (requestHandler.getResult("INSERTSONG", params, String.class)).get(0);
 
             adminView.showMessage(message);
             adminView.clearMainPanel();
@@ -113,9 +112,10 @@ public class AdminController {
         else {
             int id = adminView.getIdToDelete();
 
-            String encodedRequest = requestHandler.encodeRequest("DELETEUSER", "id=" + id + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String params = "";
+            params += "id=" + id + "#";
+
+            String message = ( requestHandler.getResult("DELETEUSER", params, String.class)).get(0);
 
             adminView.showMessage(message);
             adminView.clearMainPanel();
@@ -131,9 +131,10 @@ public class AdminController {
         else {
             int id = adminView.getIdToDelete();
 
-            String encodedRequest = requestHandler.encodeRequest("DELETESONG", "id=" + id + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String params = "";
+            params += "id=" + id + "#";
+
+            String message = (requestHandler.getResult("DELETESONG", params, String.class)).get(0);
 
             adminView.showMessage(message);
             adminView.clearMainPanel();
@@ -150,9 +151,10 @@ public class AdminController {
             int id = adminView.getIdToUpdate();
             String newUsername = adminView.getUsernameToUpdate();
 
-            String encodedRequest = requestHandler.encodeRequest("UPDATEUSER", "id=" + id + "#newUsername=" + newUsername + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String params = "";
+            params += "id=" + id + "#newUsername=" + newUsername + "#";
+
+            String message = (requestHandler.getResult("UPDATEUSER", params, String.class)).get(0);
 
             adminView.showMessage(message);
             adminView.clearMainPanel();
@@ -173,10 +175,11 @@ public class AdminController {
             String newGenre = adminView.getGenreToUpdate();
             int newViewCount = adminView.getViewCountToUpdate();
 
-            String encodedRequest = requestHandler.encodeRequest("UPDATESONG", "id=" + id + "#newTitle=" + newTitle + "#newArtist=" +
-                                    newArtist + "#newAlbum=" + newAlbum + "#newGenre=" + newGenre + "#newViewCount=" + newViewCount + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String params = "";
+            params += "id=" + id + "#newTitle=" + newTitle + "#newArtist=" + newArtist + "#newAlbum=" +
+                    newAlbum + "#newGenre=" + newGenre + "#newViewCount=" + newViewCount + "#";
+
+            String message = (requestHandler.getResult("UPDATESONG", params, String.class)).get(0);
 
             adminView.showMessage(message);
             adminView.clearMainPanel();
@@ -196,9 +199,10 @@ public class AdminController {
             String typeOfReport = adminView.getTypeOfReport();
             String username = adminView.getUsernameToGenerate();
 
-            String encodedRequest = requestHandler.encodeRequest("SHOWALLPLAYLISTS", "idUser=" + id + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            playlists = (List<Playlist>) requestHandler.decodeResponse(encodedResponse, Playlist.class);
+            String params = "";
+            params += "idUser=" + id + "#";
+
+            playlists = requestHandler.getResult("SHOWALLPLAYLISTS", params, Playlist.class);
 
             if (playlists.isEmpty()) {
                 adminView.showMessage("The selected user does not have any playlists created!");
@@ -207,9 +211,10 @@ public class AdminController {
                 Map<Playlist, List<Song>> playlistSongsMap = new HashMap<>();
                 for (Playlist playlist : playlists) {
 
-                    encodedRequest = requestHandler.encodeRequest("SHOWALLPLAYLISTSONGS", "idPlaylist=" + playlist.getId() + "#");
-                    encodedResponse = connection.sendRequestToServer(encodedRequest);
-                    playlistSongs = (List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class);
+                    params = "";
+                    params += "idPlaylist=" + playlist.getId() + "#";
+
+                    playlistSongs = requestHandler.getResult("SHOWALLPLAYLISTSONGS", params, Song.class);
 
                     playlistSongsMap.put(playlist, playlistSongs);
                 }

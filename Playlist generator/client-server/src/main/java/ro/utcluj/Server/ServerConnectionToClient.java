@@ -2,7 +2,6 @@ package ro.utcluj.Server;
 
 import ro.utcluj.ClientAndServer.Communication.LiveNotificationHandler;
 import ro.utcluj.ClientAndServer.Communication.RequestHandler;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -36,7 +35,7 @@ public class ServerConnectionToClient extends Thread implements Observer {
                     this.handleRequestFromClient();
                 }
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(250);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

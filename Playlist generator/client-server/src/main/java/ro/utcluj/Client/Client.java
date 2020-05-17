@@ -2,7 +2,6 @@ package ro.utcluj.Client;
 
 import ro.utcluj.Client.Controller.RegUserController;
 import ro.utcluj.Client.View.LoginView;
-
 import java.io.IOException;
 import java.net.Socket;
 

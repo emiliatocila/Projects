@@ -21,9 +21,9 @@ public class ResponseMessage {
         this.encodedObject = encodedObject;
     }
 
-    public List<?> getDecodedObject(Class<?> tClass) {
+    public <T extends Object> List<T> getDecodedObject(Class<T> tClass) {
         Gson gson = new Gson();
-        List<?> list = new ArrayList<>();
+        List<T> list = new ArrayList<>();
         String[] splitObjs = encodedObject.split("_");
         if (splitObjs.length == 0) {
             return Arrays.asList(gson.fromJson(encodedObject, tClass));

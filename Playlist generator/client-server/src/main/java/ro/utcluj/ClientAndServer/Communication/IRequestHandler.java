@@ -7,5 +7,8 @@ public interface IRequestHandler {
     String encodeRequest(String operation, String param, Object o);
     RequestMessage decodeRequest(String encodedMessage);
     String handleRequest(String encodedMessage);
-    List<?> decodeResponse(String encodedMessage, Class<?> tclass);
+    String sendRequestToServer(String encodedRequest);
+    <T extends Object> List<T> decodeResponse(String encodedMessage, Class<T> tclass);
+    <T extends Object> List<T> getResult(String operation, String params, Class<T> tclass);
+    <T extends Object> List<T> getResult(String operation, String params, Object o, Class<T> tclass);
 }

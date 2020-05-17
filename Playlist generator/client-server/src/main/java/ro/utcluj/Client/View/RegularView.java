@@ -29,6 +29,7 @@ public class RegularView extends JFrame implements IRegularView {
     List<String> whoSuggested = new ArrayList<String>();
 
     JTabbedPane mainPanel;
+    int tabCurrentIndex = 0;
 
     JPanel homePanel;
     JPanel songsPanel;
@@ -137,6 +138,7 @@ public class RegularView extends JFrame implements IRegularView {
         mainPanel.addTab("Home", homePanel);
         mainPanel.addTab("Songs", songsPanel);
         mainPanel.addTab("Playlists", playlistsPanel);
+        mainPanel.setSelectedIndex(tabCurrentIndex);
     }
 
     public void initHome(){
@@ -535,6 +537,7 @@ public class RegularView extends JFrame implements IRegularView {
 
     @Override
     public void clearMainPanel() {
+        tabCurrentIndex = mainPanel.getSelectedIndex();
         mainPanel.removeAll();
         homePanel.removeAll();
         songsPanel.removeAll();
@@ -787,7 +790,8 @@ public class RegularView extends JFrame implements IRegularView {
 
     @Override
     public void resetIdSongsForNewPlaylist() {
-        this.idSongsForNewPlaylist.clear();
+        if(this.idSongsForNewPlaylist != null)
+            this.idSongsForNewPlaylist.clear();
     }
 
     @Override

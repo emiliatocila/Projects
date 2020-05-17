@@ -2,7 +2,6 @@ package ro.utcluj.ClientAndServer.Communication;
 
 import com.google.gson.Gson;
 import ro.utcluj.ClientAndServer.Model.SongSugg;
-
 import java.util.*;
 
 public class LiveNotificationHandler extends Observable implements Observer {

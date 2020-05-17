@@ -1,7 +1,6 @@
 package ro.utcluj.Server;
 
 import ro.utcluj.ClientAndServer.Communication.LiveNotificationHandler;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;

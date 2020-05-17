@@ -6,6 +6,6 @@ import java.util.List;
 public interface IPlaylistService {
     List<Playlist> viewAllPlaylistsForUser(int idUser);
     Playlist viewPlaylistForUserWithName(int idUser, String name);
-    String createPlaylist(Playlist playlist);
+    String createPlaylist(int idUser, String name);
     String deletePlaylist(int idPlaylist);
 }

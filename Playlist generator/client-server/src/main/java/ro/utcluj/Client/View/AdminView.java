@@ -18,6 +18,7 @@ public class AdminView extends JFrame implements IAdminView {
     List<Song> songs = null;
 
     JTabbedPane mainPanel;
+    int tabCurrentIndex = 0;
 
     JPanel regUsersPanel;
     JPanel songsPanel;
@@ -87,6 +88,7 @@ public class AdminView extends JFrame implements IAdminView {
         initSongs();
         mainPanel.addTab("Regular Users", regUsersPanel);
         mainPanel.addTab("Songs", songsPanel);
+        mainPanel.setSelectedIndex(tabCurrentIndex);
     }
 
     public void initRegUsers(){
@@ -225,6 +227,7 @@ public class AdminView extends JFrame implements IAdminView {
 
     @Override
     public void clearMainPanel(){
+        tabCurrentIndex = mainPanel.getSelectedIndex();
         mainPanel.removeAll();
         regUsersPanel.removeAll();
         songsPanel.removeAll();

@@ -4,7 +4,6 @@ import ro.utcluj.ClientAndServer.Model.Friends;
 import ro.utcluj.ClientAndServer.Model.User;
 import ro.utcluj.Server.Repository.IFriendsRepository;
 import ro.utcluj.Server.Repository.IUserRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 

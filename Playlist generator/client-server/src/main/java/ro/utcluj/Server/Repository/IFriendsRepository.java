@@ -1,7 +1,6 @@
 package ro.utcluj.Server.Repository;
 
 import ro.utcluj.ClientAndServer.Model.Friends;
-import ro.utcluj.ClientAndServer.Model.User;
 import java.util.List;
 
 public interface IFriendsRepository {

@@ -5,7 +5,6 @@ import org.hibernate.SessionFactory;
 import ro.utcluj.ClientAndServer.Model.Song;
 import ro.utcluj.ClientAndServer.Model.SongSugg;
 import ro.utcluj.Server.ApplicationSession;
-
 import java.util.List;
 
 public class SongSuggRepositoryImpl implements ISongSuggRepository {

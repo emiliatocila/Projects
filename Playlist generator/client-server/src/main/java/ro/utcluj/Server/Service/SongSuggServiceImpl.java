@@ -3,19 +3,16 @@ package ro.utcluj.Server.Service;
 import ro.utcluj.ClientAndServer.Model.Song;
 import ro.utcluj.ClientAndServer.Model.SongSugg;
 import ro.utcluj.ClientAndServer.Model.User;
-import ro.utcluj.Server.Repository.ISongRepository;
 import ro.utcluj.Server.Repository.ISongSuggRepository;
 import ro.utcluj.Server.Repository.IUserRepository;
 import java.util.List;
 
 public class SongSuggServiceImpl extends ISongSuggService {
     private ISongSuggRepository songSuggRepository;
-    private ISongRepository songRepository;
     private IUserRepository userRepository;
 
-    public SongSuggServiceImpl(ISongSuggRepository songSuggRepository, ISongRepository songRepository, IUserRepository userRepository) {
+    public SongSuggServiceImpl(ISongSuggRepository songSuggRepository, IUserRepository userRepository) {
         this.songSuggRepository = songSuggRepository;
-        this.songRepository = songRepository;
         this.userRepository = userRepository;
     }
 

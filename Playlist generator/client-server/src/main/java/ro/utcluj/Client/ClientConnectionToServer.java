@@ -1,7 +1,6 @@
 package ro.utcluj.Client;
 
 import ro.utcluj.ClientAndServer.Communication.LiveNotificationResponse;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -29,7 +28,7 @@ public class ClientConnectionToServer extends Thread {
                 if (serverHasData)
                     this.checkLiveNotification();
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(250);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

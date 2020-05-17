@@ -2,18 +2,20 @@ package ro.utcluj.Client.View;
 
 import ro.utcluj.Client.Controller.LoginController;
 import ro.utcluj.ClientAndServer.Model.User;
-
 import javax.swing.*;
 import java.awt.*;
 
 public class LoginView extends JFrame implements ILoginView {
 
+    private JPanel loginPanel;
+    private JPanel loginInfoPanel;
     private final JTextField usernameTextField;
     private final JPasswordField passwordTextField;
+    private final ImageIcon loadingIcon = new ImageIcon("ajax-loader.gif");
 
     public LoginView() {
-        JPanel loginPanel = new JPanel();
-        JPanel loginInfoPanel = new JPanel();
+        loginPanel = new JPanel();
+        loginInfoPanel = new JPanel();
         JPanel usernamePanel = new JPanel();
         JPanel passwordPanel = new JPanel();
         loginPanel.setLayout(new GridBagLayout());
@@ -57,6 +59,14 @@ public class LoginView extends JFrame implements ILoginView {
     @Override
     public void setVisibleLoginView(boolean boolValue){
         this.setVisible(boolValue);
+    }
+
+    @Override
+    public void showLoadingScreen() {
+        loginPanel.remove(loginInfoPanel);
+        loginPanel.add(new JLabel("Logging in...", loadingIcon, JLabel.CENTER));
+        loginPanel.revalidate();
+        loginPanel.repaint();
     }
 
     @Override

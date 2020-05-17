@@ -4,7 +4,6 @@ import ro.utcluj.ClientAndServer.Model.Playlist;
 import ro.utcluj.ClientAndServer.Model.Song;
 import ro.utcluj.ClientAndServer.Model.SongSugg;
 import ro.utcluj.ClientAndServer.Model.User;
-
 import java.util.List;
 
 public interface IRegularView {

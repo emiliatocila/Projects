@@ -1,9 +1,7 @@
 package ro.utcluj.Client.Controller;
 
-import jdk.nashorn.internal.scripts.JO;
-import ro.utcluj.Client.Client;
-import ro.utcluj.Client.ClientConnectionToServer;
 import ro.utcluj.Client.View.LoginView;
+import ro.utcluj.ClientAndServer.Communication.IRequestHandler;
 import ro.utcluj.ClientAndServer.Model.*;
 import ro.utcluj.ClientAndServer.Communication.RequestHandler;
 import ro.utcluj.Client.View.IRegularView;
@@ -14,8 +12,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 public class RegUserController implements Observer {
-    private static ClientConnectionToServer connection;
-    private final RequestHandler requestHandler;
+    private final IRequestHandler requestHandler;
     private final IRegularView regView;
     private List<Song> songs;
     private List<Playlist> playlists;
@@ -32,9 +29,13 @@ public class RegUserController implements Observer {
 
     public RegUserController(IRegularView regView) {
         this.regView = regView;
-        connection = Client.getConnection();
         requestHandler = new RequestHandler();
         this.initFriendsFriendRequestsSongsAndPlaylists();
+    }
+
+    public RegUserController(IRegularView regView, IRequestHandler requestHandler) {
+        this.regView = regView;
+        this.requestHandler = requestHandler;
     }
 
     public void initFriendsFriendRequestsSongsAndPlaylists() {
@@ -55,51 +56,62 @@ public class RegUserController implements Observer {
     }
 
     public void initFriends() {
-        String encodedRequest = requestHandler.encodeRequest("SHOWALLFRIENDS", "idMe=" + regView.getUserId() + "#");
-        String encodedResponse = connection.sendRequestToServer(encodedRequest);
-        friends = (List<User>) requestHandler.decodeResponse(encodedResponse, User.class);
+        int idMe = regView.getUserId();
+        String params = "";
+        params += "idMe=" + idMe + "#";
+
+        friends = requestHandler.getResult("SHOWALLFRIENDS", params, User.class);
         regView.setFriends(friends);
     }
 
     public void initPendingFriendRequests() {
-        String encodedRequest = requestHandler.encodeRequest("SHOWALLPENDINGFRIENDREQUESTS", "idMe=" + regView.getUserId() + "#");
-        String encodedResponse = connection.sendRequestToServer(encodedRequest);
-        pendingFriendRequests = (List<User>) requestHandler.decodeResponse(encodedResponse, User.class);
+        int idMe = regView.getUserId();
+        String params = "";
+        params += "idMe=" + idMe + "#";
+
+        pendingFriendRequests = requestHandler.getResult("SHOWALLPENDINGFRIENDREQUESTS", params, User.class);
         regView.setPendingFriendRequests(pendingFriendRequests);
     }
 
     public void initFriendRequests() {
-        String encodedRequest = requestHandler.encodeRequest("SHOWALLFRIENDREQUESTS", "idMe=" + regView.getUserId() + "#");
-        String encodedResponse = connection.sendRequestToServer(encodedRequest);
-        friendRequests = (List<User>) requestHandler.decodeResponse(encodedResponse, User.class);
+        int idMe = regView.getUserId();
+        String params = "";
+        params += "idMe=" + idMe + "#";
+
+        friendRequests = requestHandler.getResult("SHOWALLFRIENDREQUESTS", params, User.class);
         regView.setFriendRequests(friendRequests);
     }
 
     public void initSongSuggsSent() {
-        String encodedRequest = requestHandler.encodeRequest("SHOWALLSONGSUGGSSENT", "idMe=" + regView.getUserId() + "#");
-        String encodedResponse = connection.sendRequestToServer(encodedRequest);
-        songSuggsSent = (List<SongSugg>) requestHandler.decodeResponse(encodedResponse, SongSugg.class);
+        int idMe = regView.getUserId();
+        String params = "";
+        params += "idMe=" + idMe + "#";
+
+        songSuggsSent = requestHandler.getResult("SHOWALLSONGSUGGSSENT", params, SongSugg.class);
         regView.setSongSuggSent(songSuggsSent);
     }
 
     public void initSongSuggsReceived() {
-        String encodedRequest = requestHandler.encodeRequest("SHOWALLSONGSUGGSRECEIVED", "idMe=" + regView.getUserId() + "#");
-        String encodedResponse = connection.sendRequestToServer(encodedRequest);
-        songSuggsReceived = (List<SongSugg>) requestHandler.decodeResponse(encodedResponse, SongSugg.class);
+        int idMe = regView.getUserId();
+        String params = "";
+        params += "idMe=" + idMe + "#";
+
+        songSuggsReceived = requestHandler.getResult("SHOWALLSONGSUGGSRECEIVED", params, SongSugg.class);
         regView.setSongSuggReceived(songSuggsReceived);
     }
 
     private void initSuggSongsReceived() {
-        suggSongsReceived = new ArrayList<Song>();
+        suggSongsReceived = new ArrayList<>();
         if (songSuggsReceived.get(0) == null) {
             suggSongsReceived.clear();
             suggSongsReceived.add(null);
         }
         else {
             for (SongSugg songSugg : songSuggsReceived) {
-                String encodedRequest = requestHandler.encodeRequest("GETSUGGSONG", "songSugg=", songSugg);
-                String encodedResponse = connection.sendRequestToServer(encodedRequest);
-                Song suggSong = ((List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class)).get(0);
+                String params = "";
+                params += "songSugg=";
+
+                Song suggSong = ( requestHandler.getResult("GETSUGGSONG", params, songSugg, Song.class)).get(0);
                 suggSongsReceived.add(suggSong);
             }
         }
@@ -114,9 +126,10 @@ public class RegUserController implements Observer {
         }
         else {
             for (SongSugg songSugg : songSuggsReceived) {
-                String encodedRequest = requestHandler.encodeRequest("GETUSERNAMEWHOSUGGESTED", "songSugg=", songSugg);
-                String encodedResponse = connection.sendRequestToServer(encodedRequest);
-                String whoSugg = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+                String params = "";
+                params += "songSugg=";
+
+                String whoSugg = (requestHandler.getResult("GETUSERNAMEWHOSUGGESTED", params, songSugg, String.class)).get(0);
                 whoSuggested.add(whoSugg);
             }
         }
@@ -124,23 +137,24 @@ public class RegUserController implements Observer {
     }
 
     public void initSongs() {
-        String encodedRequest = requestHandler.encodeRequest("SHOWALLSONGS", null);
-        String encodedResponse = connection.sendRequestToServer(encodedRequest);
-        songs = (List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class);
+        songs = requestHandler.getResult("SHOWALLSONGS", null, Song.class);
         regView.setSongs(songs);
     }
 
     public void initPlaylists() {
-        String encodedRequest = requestHandler.encodeRequest("SHOWALLPLAYLISTS", "idUser=" + regView.getUserId() + "#");
-        String encodedResponse = connection.sendRequestToServer(encodedRequest);
-        playlists = (List<Playlist>) requestHandler.decodeResponse(encodedResponse, Playlist.class);
+        int idMe = regView.getUserId();
+        String params = "";
+        params += "idUser=" + idMe + "#";
+
+        playlists = requestHandler.getResult("SHOWALLPLAYLISTS", params, Playlist.class);
         regView.setPlaylists(playlists);
     }
 
     public void initPlaylistSongs(int id) {
-        String encodedRequest = requestHandler.encodeRequest("SHOWALLPLAYLISTSONGS", "idPlaylist=" + id + "#");
-        String encodedResponse = connection.sendRequestToServer(encodedRequest);
-        playlistSongs = (List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class);
+        String params = "";
+        params += "idPlaylist=" + id + "#";
+
+        playlistSongs = requestHandler.getResult("SHOWALLPLAYLISTSONGS", params, Song.class);
         regView.setPlaylistSongs(playlistSongs);
     }
 
@@ -191,33 +205,32 @@ public class RegUserController implements Observer {
         if (option == JOptionPane.OK_OPTION) {
             int criteriaIndex = searchByOptionPane[1];
             String criteria = regView.getCriteria();
-            String encodedRequest = "";
-            String encodedResponse = "";
+            String params = "";
             switch (criteriaIndex) {
                 case 0:
-                    encodedRequest = requestHandler.encodeRequest("SEARCHBYTITLE", "title=" + criteria + "#");
-                    encodedResponse = connection.sendRequestToServer(encodedRequest);
-                    songs = (List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class);
+                    params += "title=" + criteria + "#";
+                    songs = requestHandler.getResult("SEARCHBYTITLE", params, Song.class);
                     break;
                 case 1:
-                    encodedRequest = requestHandler.encodeRequest("SEARCHBYARTIST", "artist=" + criteria + "#");
-                    encodedResponse = connection.sendRequestToServer(encodedRequest);
-                    songs = (List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class);
+                    params = "";
+                    params += "artist=" + criteria + "#";
+
+                    songs = requestHandler.getResult("SEARCHBYARTIST", params, Song.class);
                     break;
                 case 2:
-                    encodedRequest = requestHandler.encodeRequest("SEARCHBYALBUM", "album=" + criteria + "#");
-                    encodedResponse = connection.sendRequestToServer(encodedRequest);
-                    songs = (List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class);
+                    params = "";
+                    params += "album=" + criteria + "#";
+
+                    songs = requestHandler.getResult("SEARCHBYALBUM", params, Song.class);
                     break;
                 case 3:
-                    encodedRequest = requestHandler.encodeRequest("SEARCHBYGENRE", "genre=" + criteria + "#");
-                    encodedResponse = connection.sendRequestToServer(encodedRequest);
-                    songs = (List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class);
+                    params = "";
+                    params += "genre=" + criteria + "#";
+
+                    songs = requestHandler.getResult("SEARCHBYGENRE", params, Song.class);
                     break;
                 case 4:
-                    encodedRequest = requestHandler.encodeRequest("SEARCHBYTOPVIEWS", null);
-                    encodedResponse = connection.sendRequestToServer(encodedRequest);
-                    songs = (List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class);
+                    songs = requestHandler.getResult("SEARCHBYTOPVIEWS", null, Song.class);
                     break;
             }
             if (songs.get(0) == null) {
@@ -234,56 +247,53 @@ public class RegUserController implements Observer {
     public void createNewPlaylist(SongSugg newSongSugg) {
         int option = regView.createNewPlaylistOptionPane(newSongSugg);
         String message = "";
-        String encodedRequest = "";
-        String encodedResponse = "";
         if (option == JOptionPane.OK_OPTION){
             int idUser = regView.getUserId();
             String playlistName = regView.getPlaylistName();
-            Playlist playlist = new Playlist(idUser, playlistName);
             List<Integer> idSongsForNewPlaylist = regView.getIdSongsForNewPlaylist();
 
-            encodedRequest = requestHandler.encodeRequest("CREATEPLAYLIST", "playlist=", playlist);
-            encodedResponse = connection.sendRequestToServer(encodedRequest);
-            message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String params = "";
+            params += "idUser=" + idUser + "#playlistName=" + playlistName + "#";
+
+            message = (requestHandler.getResult("CREATEPLAYLIST", params, String.class)).get(0);
 
             if (idSongsForNewPlaylist != null) {
 
                 int idPlaylist;
 
-                encodedRequest = requestHandler.encodeRequest("SHOWPLAYLISTFORUSERWITHNAME", "idUser=" + idUser +
-                        "#playlistName=" + playlistName + "#");
-                encodedResponse = connection.sendRequestToServer(encodedRequest);
-                idPlaylist = ((List<Playlist>) requestHandler.decodeResponse(encodedResponse, Playlist.class)).get(0).getId();
+                params = "";
+                params += "idUser=" + idUser + "#playlistName=" + playlistName + "#";
+
+                idPlaylist = (requestHandler.getResult("SHOWPLAYLISTFORUSERWITHNAME", params, Playlist.class)).get(0).getId();
 
                 for (int idSong : idSongsForNewPlaylist) {
                     PlaylistSongs playlistSong = new PlaylistSongs(idPlaylist, idSong);
 
-                    encodedRequest = requestHandler.encodeRequest("ADDSONG", "playlistSong=", playlistSong);
-                    encodedResponse = connection.sendRequestToServer(encodedRequest);
-                    requestHandler.decodeResponse(encodedResponse, String.class);
+                    params = "";
+                    params += "playlistSong=";
+
+                    requestHandler.getResult("ADDSONG", params, playlistSong, String.class);
                 }
-                this.initPlaylists();
-                this.initPlaylistSongs(regView.getUserId());
-                regView.resetIdSongsForNewPlaylist();
-                regView.clearMainPanel();
-                regView.init();
             }
             regView.showMessage(message);
             okToConfirm = 1;
         }
         else
             okToConfirm = 0;
+
+        this.initPlaylists();
+        regView.resetIdSongsForNewPlaylist();
+        regView.clearMainPanel();
+        regView.init();
     }
 
     public void addSongsToAnExistingPlaylist(SongSugg newSongSugg) {
         int idUser = regView.getUserId();
         List<Playlist> playlists;
-        String encodedRequest;
-        String encodedResponse;
+        String params = "";
+        params += "idUser=" + idUser + "#";
 
-        encodedRequest = requestHandler.encodeRequest("SHOWALLPLAYLISTS", "idUser=" + idUser + "#");
-        encodedResponse = connection.sendRequestToServer(encodedRequest);
-        playlists = (List<Playlist>) requestHandler.decodeResponse(encodedResponse, Playlist.class);
+        playlists = requestHandler.getResult("SHOWALLPLAYLISTS", params, Playlist.class);
 
         Playlist selectedPlaylist = null;
         if (playlists.get(0) == null) {
@@ -299,24 +309,26 @@ public class RegUserController implements Observer {
                 int option = (int)addSongsOptionPane.get(0);
                 if (option == JOptionPane.OK_OPTION){
                     String selectedPlaylistName = addSongsOptionPane.get(1).toString();
+                    params = "";
+                    params += "idUser=" + idUser + "#playlistName=" + selectedPlaylistName + "#";
 
-                    encodedRequest = requestHandler.encodeRequest("SHOWPLAYLISTFORUSERWITHNAME", "idUser=" + idUser +
-                                    "#playlistName=" + selectedPlaylistName + "#");
-                    encodedResponse = connection.sendRequestToServer(encodedRequest);
-                    selectedPlaylist = ((List<Playlist>) requestHandler.decodeResponse(encodedResponse, Playlist.class)).get(0);
+                    selectedPlaylist = (requestHandler.getResult("SHOWPLAYLISTFORUSERWITHNAME", params, Playlist.class)).get(0);
 
                     int duplicateSongs = 0;
                     for (int idSong : idSongsForNewPlaylist) {
                         PlaylistSongs playlistSong = new PlaylistSongs(selectedPlaylist.getId(), idSong);
+                        params = "";
+                        params += "playlistSong=";
 
-                        encodedRequest = requestHandler.encodeRequest("ADDSONG", "playlistSong=", playlistSong);
-                        encodedResponse = connection.sendRequestToServer(encodedRequest);
-                        String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+                        String message = (requestHandler.getResult("ADDSONG", params, playlistSong, String.class)).get(0);
 
                         if (message.equals("Duplicate song not added!"))
                             duplicateSongs++;
                     }
-                    this.initPlaylistSongs(selectedPlaylist.getId());
+                    this.initPlaylists();
+                    if (selectedPlaylist.getId() == regView.getIdOfPlaylistToView())
+                        this.initPlaylistSongs(selectedPlaylist.getId());
+                    regView.resetIdSongsForNewPlaylist();
                     regView.clearMainPanel();
                     regView.init();
                     if (duplicateSongs == 0)
@@ -327,9 +339,10 @@ public class RegUserController implements Observer {
                         regView.showMessage("Song(s) added successfully! Duplicate song(s) not added!");
                     okToConfirm = 1;
                 }
-                else
+                else {
                     okToConfirm = 0;
-                regView.resetIdSongsForNewPlaylist();
+                    regView.resetIdSongsForNewPlaylist();
+                }
             }
         }
     }
@@ -338,12 +351,10 @@ public class RegUserController implements Observer {
     public void addSongSugg() {
         int idMe = regView.getUserId();
         List<User> friends;
-        String encodedRequest;
-        String encodedResponse;
+        String params = "";
+        params += "idMe=" + idMe + "#";
 
-        encodedRequest = requestHandler.encodeRequest("SHOWALLFRIENDS", "idMe=" + idMe + "#");
-        encodedResponse = connection.sendRequestToServer(encodedRequest);
-        friends = (List<User>) requestHandler.decodeResponse(encodedResponse, User.class);
+        friends = requestHandler.getResult("SHOWALLFRIENDS", params, User.class);
 
         if (friends.get(0) == null) {
             regView.showMessage("Friend list is empty!");
@@ -358,11 +369,10 @@ public class RegUserController implements Observer {
                 int option = (int)addSongSuggOptionPane.get(0);
                 if (option == JOptionPane.OK_OPTION){
                     String selectedFriendUsername = addSongSuggOptionPane.get(1).toString();
+                    params = "";
+                    params += "idMe=" + idMe + "#usernameTo=" + selectedFriendUsername + "#idSong=" + idNewSuggSong + "#";
 
-                    encodedRequest = requestHandler.encodeRequest("ADDSONGSUGG", "idMe=" + idMe + "#usernameTo=" + selectedFriendUsername +
-                                "#idSong=" + idNewSuggSong + "#");
-                    encodedResponse = connection.sendRequestToServer(encodedRequest);
-                    String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+                    String message = (requestHandler.getResult("ADDSONGSUGG", params, String.class)).get(0);
 
                     this.initSongSuggsSent();
                     regView.clearMainPanel();
@@ -393,10 +403,10 @@ public class RegUserController implements Observer {
             regView.showMessage("Select a playlist to be deleted!");
         else {
             int idPlaylist = regView.getIdPlaylistToDelete();
+            String params = "";
+            params += "idPlaylist=" + idPlaylist + "#";
 
-            String encodedRequest = requestHandler.encodeRequest("DELETEPLAYLIST", "idPlaylist=" + idPlaylist + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String message = (requestHandler.getResult("DELETEPLAYLIST", params, String.class)).get(0);
 
             regView.showMessage(message);
             this.initPlaylists();
@@ -420,9 +430,10 @@ public class RegUserController implements Observer {
             int idPlaylist = regView.getIdPlaylistToDelete();
             int idSong = regView.getIdSongToDelete();
 
-            String encodedRequest = requestHandler.encodeRequest("REMOVESONGFROMPLAYLIST", "idPlaylist=" + idPlaylist + "#idSong=" + idSong + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String params = "";
+            params += "idPlaylist=" + idPlaylist + "#idSong=" + idSong + "#";
+
+            String message = (requestHandler.getResult("REMOVESONGFROMPLAYLIST", params, String.class)).get(0);
 
             regView.showMessage(message);
             this.initPlaylistSongs(regView.getIdOfPlaylistToView());
@@ -437,10 +448,10 @@ public class RegUserController implements Observer {
             regView.showMessage("Select a song to play!");
         else {
             int id = regView.getIdToPlay();
+            String params = "";
+            params += "idSong=" + id + "#";
 
-            String encodedRequest = requestHandler.encodeRequest("PLAYSONG", "idSong=" + id + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String message = (requestHandler.getResult("PLAYSONG", params, String.class)).get(0);
 
             regView.showMessage(message);
             this.initPlaylistSongs(regView.getIdOfPlaylistToView());
@@ -453,17 +464,14 @@ public class RegUserController implements Observer {
     public void addFriend() {
         int option = regView.addFriendsOptionPane();
         String message = "";
-        String encodedRequest = "";
-        String encodedResponse = "";
+        String params = "";
         if (option == JOptionPane.OK_OPTION) {
             int idMe = regView.getUserId();
             String newFriendUsername = regView.getNewFriendUsername();
 
             if (!newFriendUsername.equals(regView.getUserUsername())) {
-                encodedRequest = requestHandler.encodeRequest("ADDFRIEND", "newFriendUsername=" + newFriendUsername +
-                        "#idMe=" + idMe + "#");
-                encodedResponse = connection.sendRequestToServer(encodedRequest);
-                message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+                params += "newFriendUsername=" + newFriendUsername + "#idMe=" + idMe + "#";
+                message = (requestHandler.getResult("ADDFRIEND", params, String.class)).get(0);
             }
             else
                 message = "Please select a username different to yours!";
@@ -479,12 +487,12 @@ public class RegUserController implements Observer {
         if (ok == -1)
             regView.showMessage("Select a friend request to be confirmed!");
         else {
+            int idMe = regView.getUserId();
             String username = regView.getUsernameFriendRequestToConfirm();
+            String params = "";
+            params += "username=" + username + "#idMe=" + idMe + "#";
 
-            String encodedRequest = requestHandler.encodeRequest("CONFIRMFRIENDREQUEST", "username=" + username +
-                            "#idMe=" + regView.getUserId() + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String message = (requestHandler.getResult("CONFIRMFRIENDREQUEST", params, String.class)).get(0);
 
             regView.showMessage(message);
             this.initFriends();
@@ -500,11 +508,11 @@ public class RegUserController implements Observer {
             regView.showMessage("Select a friend request to be denied!");
         else {
             String username = regView.getUsernameFriendRequestToDeny();
+            int idMe = regView.getUserId();
+            String params = "";
+            params += "username=" + username + "#idMe=" + idMe + "#fr=1#";
 
-            String encodedRequest = requestHandler.encodeRequest("DENYFRIENDREQUEST", "username=" + username +
-                    "#idMe=" + regView.getUserId() + "#fr=1#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String message = (requestHandler.getResult("DENYFRIENDREQUEST", params, String.class)).get(0);
 
             regView.showMessage(message);
             this.initFriendRequests();
@@ -519,11 +527,11 @@ public class RegUserController implements Observer {
             regView.showMessage("Select a friend to be removed!");
         else {
             String username = regView.getUsernameFriendToDelete();
+            int idMe = regView.getUserId();
+            String params = "";
+            params += "username=" + username + "#idMe=" + idMe + "#fr=0#";
 
-            String encodedRequest = requestHandler.encodeRequest("REMOVEFRIEND", "username=" + username +
-                    "#idMe=" + regView.getUserId() + "#fr=0#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String message = (requestHandler.getResult("REMOVEFRIEND", params, String.class)).get(0);
 
             regView.showMessage(message);
             this.initFriends();
@@ -544,9 +552,11 @@ public class RegUserController implements Observer {
         }
 
         if(okToConfirm == 1) {
-            String encodedRequest = requestHandler.encodeRequest("CONFIRMSONGSUGG", "id=" + regView.getIdSongSuggConfirmed() + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            int id = regView.getIdSongSuggConfirmed();
+            String params = "";
+            params += "id=" + id + "#";
+
+            String message = (requestHandler.getResult("CONFIRMSONGSUGG", params, String.class)).get(0);
 
             regView.showMessage(message);
             this.initSongSuggs();
@@ -562,10 +572,10 @@ public class RegUserController implements Observer {
             regView.showMessage("Select a song suggestion to be denied!");
         else {
             int id = regView.getIdSongSuggDenied();
+            String params = "";
+            params += "id=" + id + "#";
 
-            String encodedRequest = requestHandler.encodeRequest("DENYSONGSUGG", "id=" + id + "#");
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String message = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String message = (requestHandler.getResult("DENYSONGSUGG", params, String.class)).get(0);
 
             regView.showMessage(message);
             this.initSongSuggs();
@@ -579,14 +589,12 @@ public class RegUserController implements Observer {
         SongSugg newSongSugg = ((SongSugg)arg);
         int idMe = regView.getUserId();
         if (newSongSugg.getIdUserTo() == idMe) {
+            String params = "";
+            params += "songSugg=";
 
-            String encodedRequest = requestHandler.encodeRequest("GETSUGGSONG", "songSugg=", newSongSugg);
-            String encodedResponse = connection.sendRequestToServer(encodedRequest);
-            Song newSuggSong = ((List<Song>) requestHandler.decodeResponse(encodedResponse, Song.class)).get(0);
+            Song newSuggSong = (requestHandler.getResult("GETSUGGSONG", params, newSongSugg, Song.class)).get(0);
 
-            encodedRequest = requestHandler.encodeRequest("GETUSERNAMEWHOSUGGESTED", "songSugg=", newSongSugg);
-            encodedResponse = connection.sendRequestToServer(encodedRequest);
-            String whoSugg = ((List<String>) requestHandler.decodeResponse(encodedResponse, String.class)).get(0);
+            String whoSugg = (requestHandler.getResult("GETUSERNAMEWHOSUGGESTED", params, newSongSugg,String.class)).get(0);
 
             int option = regView.liveNotificationOptionPane(newSuggSong, whoSugg);
             if (option == JOptionPane.YES_OPTION) {

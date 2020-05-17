@@ -2,7 +2,6 @@ package ro.utcluj.Server.Repository;
 
 import ro.utcluj.ClientAndServer.Model.Song;
 import ro.utcluj.ClientAndServer.Model.SongSugg;
-
 import java.util.List;
 
 public interface ISongSuggRepository {

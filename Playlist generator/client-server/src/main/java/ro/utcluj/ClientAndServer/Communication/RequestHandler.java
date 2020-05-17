@@ -1,6 +1,7 @@
 package ro.utcluj.ClientAndServer.Communication;
 
 import com.google.gson.Gson;
+import ro.utcluj.Client.Client;
 import ro.utcluj.ClientAndServer.Model.*;
 import ro.utcluj.Server.Repository.*;
 import ro.utcluj.Server.Service.*;
@@ -16,7 +17,6 @@ public class RequestHandler implements  IRequestHandler{
     private final IUserService userService;
     private final ISongService songService;
     private final ISongSuggService songSuggService;
-    private LiveNotificationHandler liveNotificationHandler;
 
     public RequestHandler(){
         ILoginRepository loginRepository = new LoginRepositoryImpl();
@@ -32,7 +32,7 @@ public class RequestHandler implements  IRequestHandler{
         playlistSongsService = new PlaylistSongsServiceImpl(playlistSongsRepository);
         playlistService = new PlaylistServiceImpl(playlistRepository, playlistSongsService);
         friendsService = new FriendsServiceImpl(friendsRepository, userRepository);
-        songSuggService = new SongSuggServiceImpl(songSuggRepository, songRepository, userRepository);
+        songSuggService = new SongSuggServiceImpl(songSuggRepository, userRepository);
     }
 
     public RequestHandler(LiveNotificationHandler liveNotificationHandler){
@@ -49,7 +49,7 @@ public class RequestHandler implements  IRequestHandler{
         playlistSongsService = new PlaylistSongsServiceImpl(playlistSongsRepository);
         playlistService = new PlaylistServiceImpl(playlistRepository, playlistSongsService);
         friendsService = new FriendsServiceImpl(friendsRepository, userRepository);
-        songSuggService = new SongSuggServiceImpl(songSuggRepository, songRepository, userRepository);
+        songSuggService = new SongSuggServiceImpl(songSuggRepository, userRepository);
         songSuggService.addObserver(liveNotificationHandler);
     }
 
@@ -88,13 +88,13 @@ public class RequestHandler implements  IRequestHandler{
         RequestMessage requestMessage = decodeRequest(encodedMessage);
         String operation = requestMessage.getOperation();
         Map<String, String> paramValues = requestMessage.getParamValues();
-        User user = null;
-        Playlist playlist = null;
-        List<User> users = new ArrayList<User>();
-        List<Song> songs = new ArrayList<Song>();
-        Song song = null;
-        List<Playlist> playlists = new ArrayList<Playlist>();
-        List<SongSugg> songSuggs = new ArrayList<SongSugg>();
+        User user;
+        Playlist playlist;
+        List<User> users;
+        List<Song> songs;
+        Song song;
+        List<Playlist> playlists;
+        List<SongSugg> songSuggs;
         String message = "";
         Gson gson = new Gson();
         switch(operation) {
@@ -185,7 +185,7 @@ public class RequestHandler implements  IRequestHandler{
                 }
                 break;
             case "CREATEPLAYLIST":
-                message = playlistService.createPlaylist(gson.fromJson(paramValues.get("playlist"), Playlist.class));
+                message = playlistService.createPlaylist(Integer.parseInt(paramValues.get("idUser")), paramValues.get("playlistName"));
                 responseMessage += gson.toJson(message);
                 break;
             case "ADDSONG":
@@ -273,9 +273,27 @@ public class RequestHandler implements  IRequestHandler{
         return responseMessage;
     }
 
-    public List<?> decodeResponse(String encodedMessage, Class<?> tclass) {
+    public String sendRequestToServer(String encodedRequest) {
+        return Client.getConnection().sendRequestToServer(encodedRequest);
+    }
+
+    public <T extends Object> List<T> decodeResponse(String encodedMessage, Class<T> tclass) {
         ResponseMessage responseMessage = new ResponseMessage(encodedMessage);
         return responseMessage.getDecodedObject(tclass);
+    }
+
+    @Override
+    public <T> List<T> getResult(String operation, String params, Class<T> tclass) {
+        String encodedRequest = this.encodeRequest(operation, params);
+        String encodedResponse = this.sendRequestToServer(encodedRequest);
+        return this.decodeResponse(encodedResponse, tclass);
+    }
+
+    @Override
+    public <T> List<T> getResult(String operation, String params, Object o, Class<T> tclass) {
+        String encodedRequest = this.encodeRequest(operation, params, o);
+        String encodedResponse = this.sendRequestToServer(encodedRequest);
+        return this.decodeResponse(encodedResponse, tclass);
     }
 
 }

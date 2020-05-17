@@ -12,6 +12,7 @@ interface ILoginDataProvider {
 interface IViewProvider {
 
     void setVisibleLoginView(boolean boolValue);
+    void showLoadingScreen();
     void showRegularView(User user);
     void showAdminView(User user);
     void showErrorMessage(String message);
