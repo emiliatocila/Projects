@@ -1,9 +1,7 @@
 package ro.utcluj.Client.View;
 
-import ro.utcluj.ClientAndServer.Model.Playlist;
-import ro.utcluj.ClientAndServer.Model.Song;
-import ro.utcluj.ClientAndServer.Model.SongSugg;
-import ro.utcluj.ClientAndServer.Model.User;
+import ro.utcluj.ClientAndServer.Model.*;
+
 import java.util.List;
 
 public interface IRegularView {
@@ -18,6 +16,9 @@ public interface IRegularView {
     void setSongs(List<Song> songs);
     void setPlaylists(List<Playlist> playlists);
     void setPlaylistSongs(List<Song> songs);
+    void setPlayedSongs(List<Song> playedSongs);
+    void setRatedSongs(List<SongRatings> ratedSongs);
+    void setRatingsForSong(List<SongRatings> ratingsForSong);
     void clearMainPanel();
     int getUserId();
     String getUserUsername();
@@ -39,11 +40,16 @@ public interface IRegularView {
     String getPlaylistName();
     List<Integer> getIdSongsForNewPlaylist();
     int playSong();
+    int ratingSystem();
+    double getNewRating();
     void resetIdSongsForNewPlaylist();
+    int getRating();
+    void resetRateSong();
     void resetIdNewSongSugg();
     void setFriendsOrFriendRequests(int val);
     void setSongsOrSongSugg(int val);
     void setPlaylistsOrPlaylistsSongs(int val);
+    void increaseNrPersonalizedMix();
     int selectPlaylistToView();
     int getIdOfPlaylistToView();
     int getIdSongToDelete();
@@ -53,8 +59,10 @@ public interface IRegularView {
     String getUsernameFriendRequestToDeny();
     String getUsernameFriendToDelete();
     int getNewIdSongSugg();
+    int getIdRateSong();
     int getIdSongSuggConfirmed();
     int getIdSongSuggDenied();
+    int getNrPersonalizedMix();
     void setVisibleRegView(boolean value);
     void showMessage(String message);
 }

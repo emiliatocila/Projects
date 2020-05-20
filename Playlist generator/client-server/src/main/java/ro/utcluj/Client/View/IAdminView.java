@@ -28,6 +28,7 @@ public interface IAdminView {
     String getAlbumToUpdate();
     String getGenreToUpdate();
     int getViewCountToUpdate();
+    double getRatingToUpdate();
     int showInsertUserOptionPane();
     int showInsertSongOptionPane();
     int deleteUser();

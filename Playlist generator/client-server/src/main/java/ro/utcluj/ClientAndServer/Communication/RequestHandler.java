@@ -5,11 +5,10 @@ import ro.utcluj.Client.Client;
 import ro.utcluj.ClientAndServer.Model.*;
 import ro.utcluj.Server.Repository.*;
 import ro.utcluj.Server.Service.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RequestHandler implements  IRequestHandler{
+public class RequestHandler implements  IRequestHandler {
     private final ILoginService loginService;
     private final IPlaylistService playlistService;
     private final IPlaylistSongsService playlistSongsService;
@@ -17,6 +16,8 @@ public class RequestHandler implements  IRequestHandler{
     private final IUserService userService;
     private final ISongService songService;
     private final ISongSuggService songSuggService;
+    private final IPlayedSongsService playedSongsService;
+    private final ISongRatingsService songRatingsService;
 
     public RequestHandler(){
         ILoginRepository loginRepository = new LoginRepositoryImpl();
@@ -26,13 +27,17 @@ public class RequestHandler implements  IRequestHandler{
         IPlaylistSongsRepository playlistSongsRepository = new PlaylistSongsRepositoryImpl();
         IFriendsRepository friendsRepository = new FriendsRepositoryImpl();
         ISongSuggRepository songSuggRepository = new SongSuggRepositoryImpl();
+        IPlayedSongsRepository playedSongsRepository = new PlayedSongsRepositoryImpl();
+        ISongRatingsRepository songRatingsRepository = new SongRatingsRepositoryImpl();
         loginService = new LoginServiceImpl(loginRepository);
         userService = new UserServiceImpl(userRepository);
-        songService = new SongServiceImpl(songRepository);
         playlistSongsService = new PlaylistSongsServiceImpl(playlistSongsRepository);
         playlistService = new PlaylistServiceImpl(playlistRepository, playlistSongsService);
         friendsService = new FriendsServiceImpl(friendsRepository, userRepository);
         songSuggService = new SongSuggServiceImpl(songSuggRepository, userRepository);
+        playedSongsService = new PlayedSongsServiceImpl(playedSongsRepository);
+        songRatingsService = new SongRatingsServiceImpl(songRatingsRepository);
+        songService = new SongServiceImpl(songRepository, playedSongsService);
     }
 
     public RequestHandler(LiveNotificationHandler liveNotificationHandler){
@@ -43,14 +48,18 @@ public class RequestHandler implements  IRequestHandler{
         IPlaylistSongsRepository playlistSongsRepository = new PlaylistSongsRepositoryImpl();
         IFriendsRepository friendsRepository = new FriendsRepositoryImpl();
         ISongSuggRepository songSuggRepository = new SongSuggRepositoryImpl();
+        IPlayedSongsRepository playedSongsRepository = new PlayedSongsRepositoryImpl();
+        ISongRatingsRepository songRatingsRepository = new SongRatingsRepositoryImpl();
         loginService = new LoginServiceImpl(loginRepository);
         userService = new UserServiceImpl(userRepository);
-        songService = new SongServiceImpl(songRepository);
         playlistSongsService = new PlaylistSongsServiceImpl(playlistSongsRepository);
         playlistService = new PlaylistServiceImpl(playlistRepository, playlistSongsService);
         friendsService = new FriendsServiceImpl(friendsRepository, userRepository);
         songSuggService = new SongSuggServiceImpl(songSuggRepository, userRepository);
         songSuggService.addObserver(liveNotificationHandler);
+        playedSongsService = new PlayedSongsServiceImpl(playedSongsRepository);
+        songRatingsService = new SongRatingsServiceImpl(songRatingsRepository);
+        songService = new SongServiceImpl(songRepository, playedSongsService);
     }
 
     public String encodeRequest(String operation, String params) {
@@ -95,6 +104,7 @@ public class RequestHandler implements  IRequestHandler{
         Song song;
         List<Playlist> playlists;
         List<SongSugg> songSuggs;
+        List<SongRatings> ratedSongs;
         String message = "";
         Gson gson = new Gson();
         switch(operation) {
@@ -114,13 +124,23 @@ public class RequestHandler implements  IRequestHandler{
                     responseMessage += gson.toJson(s) + "_";
                 }
                 break;
+            case "GETSONGWITHID":
+                song = songService.getSongById(Integer.parseInt(paramValues.get("id")));
+                responseMessage += gson.toJson(song);
+                break;
+            case "SHOWALLPLAYEDSONGS":
+                songs = playedSongsService.getPlayedSongs(Integer.parseInt(paramValues.get("idUser")));
+                for(Song s : songs) {
+                    responseMessage += gson.toJson(s) + "_";
+                }
+                break;
             case "INSERTUSER":
                 message = userService.insertRegUser(paramValues.get("username"), paramValues.get("password"), 0);
                 responseMessage += gson.toJson(message);
                 break;
             case "INSERTSONG":
                 message = songService.insertSong(paramValues.get("title"), paramValues.get("artist"), paramValues.get("album"),
-                        paramValues.get("genre"), 0);
+                        paramValues.get("genre"), 0, 0);
                 responseMessage += gson.toJson(message);
                 break;
             case "DELETEUSER":
@@ -137,7 +157,7 @@ public class RequestHandler implements  IRequestHandler{
                 break;
             case "UPDATESONG":
                 message = songService.updateSong(Integer.parseInt(paramValues.get("id")), paramValues.get("newTitle"), paramValues.get("newArtist"),
-                        paramValues.get("newAlbum"), paramValues.get("newGenre"), Integer.parseInt(paramValues.get("newViewCount")));
+                        paramValues.get("newAlbum"), paramValues.get("newGenre"), Integer.parseInt(paramValues.get("newViewCount")), Double.parseDouble(paramValues.get("newRating")));
                 responseMessage += gson.toJson(message);
                 break;
             case "SHOWALLPLAYLISTS":
@@ -180,6 +200,12 @@ public class RequestHandler implements  IRequestHandler{
                 break;
             case "SEARCHBYTOPVIEWS":
                 songs = songService.viewAllSongsByTopViews();
+                for(Song s : songs) {
+                    responseMessage += gson.toJson(s) + "_";
+                }
+                break;
+            case "SEARCHBYRATING":
+                songs = songService.viewAllSongsByRating();
                 for(Song s : songs) {
                     responseMessage += gson.toJson(s) + "_";
                 }
@@ -235,8 +261,24 @@ public class RequestHandler implements  IRequestHandler{
                 responseMessage += gson.toJson(message);
                 break;
             case "PLAYSONG":
-                message = songService.playSong(Integer.parseInt(paramValues.get("idSong")));
+                message = songService.playSong(Integer.parseInt(paramValues.get("idUser")), Integer.parseInt(paramValues.get("idSong")));
                 responseMessage += gson.toJson(message);
+                break;
+            case "RATESONG":
+                message = songRatingsService.addSongRating(Integer.parseInt(paramValues.get("idUser")), Integer.parseInt(paramValues.get("idSong")), Integer.parseInt(paramValues.get("stars")));
+                responseMessage += gson.toJson(message);
+                break;
+            case "GETRATEDSONGSFORUSER":
+                ratedSongs = songRatingsService.viewAllSongRatingsForUser(Integer.parseInt(paramValues.get("idUser")));
+                for(SongRatings songRating : ratedSongs) {
+                    responseMessage += gson.toJson(songRating) + "_";
+                }
+                break;
+            case "GETRATINGSFORSONG":
+                ratedSongs = songRatingsService.viewAllSongRatingsForSong(Integer.parseInt(paramValues.get("idSong")));
+                for(SongRatings songRating : ratedSongs) {
+                    responseMessage += gson.toJson(songRating) + "_";
+                }
                 break;
             case "SHOWALLFRIENDS":
                 users = friendsService.viewAllFriends(Integer.parseInt(paramValues.get("idMe")));

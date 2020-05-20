@@ -147,13 +147,14 @@ public class RegUserControllerTests {
         IRequestHandler requestHandler = mock(IRequestHandler.class);
 
         when(regView.playSong()).thenReturn(0);
+        when(regView.getUserId()).thenReturn(0);
         when(regView.getIdToPlay()).thenReturn(0);
 
         List<String> messages = new ArrayList<>();
         String message = "Song played successfully!";
         messages.add(message);
 
-        when(requestHandler.getResult(eq("PLAYSONG"), eq("idSong=0#"), eq(String.class))).thenReturn(messages);
+        when(requestHandler.getResult(eq("PLAYSONG"), eq("idUser=0#idSong=0#"), eq(String.class))).thenReturn(messages);
 
         RegUserController controller = new RegUserController(regView, requestHandler);
 
@@ -322,6 +323,52 @@ public class RegUserControllerTests {
         controller.unfriend();
 
         verify(regView).showMessage("Friend removed!");
+    }
+
+    @Test
+    public void invalid_rateSong_showErrorMessage() {
+        IRegularView regView = mock(IRegularView.class);
+        IRequestHandler requestHandler = mock(IRequestHandler.class);
+
+        when(regView.ratingSystem()).thenReturn(-1);
+        when(regView.getUserId()).thenReturn(0);
+        when(regView.getIdRateSong()).thenReturn(0);
+
+        RegUserController controller = new RegUserController(regView, requestHandler);
+
+        controller.rateSong();
+
+        verify(regView).showMessage("Please select a song to rate!");
+    }
+
+    @Test
+    public void valid_rateSong_showMessage() {
+        IRegularView regView = mock(IRegularView.class);
+        IRequestHandler requestHandler = mock(IRequestHandler.class);
+
+        when(regView.ratingSystem()).thenReturn(JOptionPane.OK_OPTION);
+        when(regView.getUserId()).thenReturn(0);
+        when(regView.getIdRateSong()).thenReturn(0);
+        when(regView.getRating()).thenReturn(3);
+
+        List<String> messages = new ArrayList<>();
+        String message = "Song rated!";
+        messages.add(message);
+
+        when(requestHandler.getResult(eq("RATESONG"), eq("idUser=0#idSong=0#stars=3#"), eq(String.class))).thenReturn(messages);
+        when(regView.getNewRating()).thenReturn(3.5);
+
+        List<Song> songs = new ArrayList<>();
+        Song song = new Song("newTitle", "newArtist", "newAlbum", "newGenre", 1, 4.0);
+        songs.add(song);
+
+        when(requestHandler.getResult(eq("GETSONGWITHID"), eq("id=0#"), eq(Song.class))).thenReturn(songs);
+
+        RegUserController controller = new RegUserController(regView, requestHandler);
+
+        controller.rateSong();
+
+        verify(regView).showMessage("Song rated!");
     }
 
 }

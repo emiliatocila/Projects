@@ -36,6 +36,8 @@
         <mapping class="ro.utcluj.ClientAndServer.Model.PlaylistSongs"/>
         <mapping class="ro.utcluj.ClientAndServer.Model.Friends"/>
         <mapping class="ro.utcluj.ClientAndServer.Model.SongSugg"/>
+        <mapping class="ro.utcluj.ClientAndServer.Model.PlayedSongs"/>
+        <mapping class="ro.utcluj.ClientAndServer.Model.SongRatings"/>
 
     </session-factory>
 

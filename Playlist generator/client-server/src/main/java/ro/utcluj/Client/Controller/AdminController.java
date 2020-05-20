@@ -174,10 +174,11 @@ public class AdminController {
             String newAlbum = adminView.getAlbumToUpdate();
             String newGenre = adminView.getGenreToUpdate();
             int newViewCount = adminView.getViewCountToUpdate();
+            double newRating = adminView.getRatingToUpdate();
 
             String params = "";
             params += "id=" + id + "#newTitle=" + newTitle + "#newArtist=" + newArtist + "#newAlbum=" +
-                    newAlbum + "#newGenre=" + newGenre + "#newViewCount=" + newViewCount + "#";
+                    newAlbum + "#newGenre=" + newGenre + "#newViewCount=" + newViewCount + "#newRating=" + newRating + "#";
 
             String message = (requestHandler.getResult("UPDATESONG", params, String.class)).get(0);
 

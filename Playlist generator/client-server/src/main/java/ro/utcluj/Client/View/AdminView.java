@@ -59,6 +59,7 @@ public class AdminView extends JFrame implements IAdminView {
     private String albumToUpdate = null;
     private String genreToUpdate = null;
     private int viewCountToUpdate = 0;
+    private double ratingToUpdate = -1.0;
 
     public AdminView(User user){
         this.user = user;
@@ -302,6 +303,7 @@ public class AdminView extends JFrame implements IAdminView {
             albumToUpdate = songsTable.getValueAt(row, 3).toString();
             genreToUpdate = songsTable.getValueAt(row, 4).toString();
             viewCountToUpdate = Integer.parseInt(songsTable.getValueAt(row, 5).toString());
+            ratingToUpdate = Double.parseDouble(songsTable.getValueAt(row, 6).toString());
             return 0;
         } else return -1;
     }
@@ -408,6 +410,9 @@ public class AdminView extends JFrame implements IAdminView {
     public int getViewCountToUpdate() {
         return viewCountToUpdate;
     }
+
+    @Override
+    public double getRatingToUpdate() { return ratingToUpdate; }
 
     @Override
     public void showMessage(String message) {

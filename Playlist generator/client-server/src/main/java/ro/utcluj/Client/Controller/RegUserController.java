@@ -6,10 +6,7 @@ import ro.utcluj.ClientAndServer.Model.*;
 import ro.utcluj.ClientAndServer.Communication.RequestHandler;
 import ro.utcluj.Client.View.IRegularView;
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 
 public class RegUserController implements Observer {
     private final IRequestHandler requestHandler;
@@ -24,6 +21,9 @@ public class RegUserController implements Observer {
     private List<SongSugg> songSuggsReceived;
     private List<Song> suggSongsReceived;
     private List<String> whoSuggested;
+    private List<Song> playedSongs;
+    private List<SongRatings> ratedSongs;
+    private List<SongRatings> ratingsForSong;
     private int okToConfirm = 0;
 
 
@@ -45,6 +45,8 @@ public class RegUserController implements Observer {
         this.initSongs();
         this.initSongSuggs();
         this.initPlaylists();
+        this.initPlayedSongs();
+        this.initRatedSongs();
         regView.init();
     }
 
@@ -141,6 +143,33 @@ public class RegUserController implements Observer {
         regView.setSongs(songs);
     }
 
+    public void initPlayedSongs() {
+        int idMe = regView.getUserId();
+        String params = "";
+        params += "idUser=" + idMe + "#";
+
+        playedSongs = requestHandler.getResult("SHOWALLPLAYEDSONGS", params, Song.class);
+        regView.setPlayedSongs(playedSongs);
+    }
+
+    public void initRatedSongs() {
+        int idMe = regView.getUserId();
+        String params = "";
+        params += "idUser=" + idMe + "#";
+
+        ratedSongs = requestHandler.getResult("GETRATEDSONGSFORUSER", params, SongRatings.class);
+        regView.setRatedSongs(ratedSongs);
+    }
+
+    public void initRatingsForSong() {
+        int idSong = regView.getIdRateSong();
+        String params = "";
+        params += "idSong=" + idSong + "#";
+
+        ratingsForSong = requestHandler.getResult("GETRATINGSFORSONG", params, SongRatings.class);
+        regView.setRatingsForSong(ratingsForSong);
+    }
+
     public void initPlaylists() {
         int idMe = regView.getUserId();
         String params = "";
@@ -231,6 +260,9 @@ public class RegUserController implements Observer {
                     break;
                 case 4:
                     songs = requestHandler.getResult("SEARCHBYTOPVIEWS", null, Song.class);
+                    break;
+                case 5:
+                    songs = requestHandler.getResult("SEARCHBYRATING", null, Song.class);
                     break;
             }
             if (songs.get(0) == null) {
@@ -447,9 +479,10 @@ public class RegUserController implements Observer {
         if (ok == -1)
             regView.showMessage("Select a song to play!");
         else {
-            int id = regView.getIdToPlay();
+            int idUser = regView.getUserId();
+            int idSong = regView.getIdToPlay();
             String params = "";
-            params += "idSong=" + id + "#";
+            params += "idUser=" + idUser + "#idSong=" + idSong + "#";
 
             String message = (requestHandler.getResult("PLAYSONG", params, String.class)).get(0);
 
@@ -606,4 +639,141 @@ public class RegUserController implements Observer {
         }
     }
 
+    public void generatePlaylist() {
+        int idMe = regView.getUserId();
+        int nrPersonalizedMix = regView.getNrPersonalizedMix();
+        List<Song> songsForNewPlaylist = new ArrayList<Song>();
+        List<Song> songsWithMostPlayedGenre = new ArrayList<Song>();
+        List<Integer> idSongsForNewPlaylist = new ArrayList<Integer>();
+
+        this.initPlayedSongs();
+
+        if(playedSongs.get(0) != null) {
+            int nrPlayedSongs = playedSongs.size();
+
+            if(nrPlayedSongs >= 5) {
+                for(int i = nrPlayedSongs - 1; i >= nrPlayedSongs - 5; i--) {
+                    songsForNewPlaylist.add(playedSongs.get(i));
+                }
+            }
+            else
+                for(Song s : playedSongs) {
+                    songsForNewPlaylist.add(s);
+                }
+
+            Map<String, Integer> nrSongsOfGenres = new HashMap<>();
+            String mostPlayedGenre = "";
+            int nrTimesPlayedGenre = 0;
+            for(Song s : songsForNewPlaylist) {
+                if(!nrSongsOfGenres.containsKey(s.getGenre()))
+                    nrSongsOfGenres.put(s.getGenre(), 1);
+                else
+                    nrSongsOfGenres.replace(s.getGenre(), nrSongsOfGenres.get(s.getGenre()) + 1);
+            }
+            mostPlayedGenre += nrSongsOfGenres.keySet().toArray()[0];
+            nrTimesPlayedGenre = nrSongsOfGenres.get(mostPlayedGenre);
+            for(String genre : nrSongsOfGenres.keySet()) {
+                if(nrSongsOfGenres.get(genre) > nrTimesPlayedGenre) {
+                    mostPlayedGenre = genre;
+                    nrTimesPlayedGenre = nrSongsOfGenres.get(genre);
+                }
+            }
+
+            String params = "";
+
+            params = "";
+            params += "genre=" + mostPlayedGenre + "#";
+
+            songsWithMostPlayedGenre = requestHandler.getResult("SEARCHBYGENRE", params, Song.class);
+            Collections.shuffle(songsWithMostPlayedGenre);
+
+            for(int i = 0; i <= songsWithMostPlayedGenre.size()/2; i++) {
+                idSongsForNewPlaylist.add(songsWithMostPlayedGenre.get(i).getId());
+            }
+
+            String message;
+            String playlistName = "";
+            playlistName += "Personalized Mix " + nrPersonalizedMix;
+
+            params = "";
+            params += "idUser=" + idMe + "#playlistName=" + playlistName + "#";
+
+            message = (requestHandler.getResult("CREATEPLAYLIST", params, String.class)).get(0);
+
+            int idPlaylist;
+
+            idPlaylist = (requestHandler.getResult("SHOWPLAYLISTFORUSERWITHNAME", params, Playlist.class)).get(0).getId();
+
+            for (int idSong : idSongsForNewPlaylist) {
+                PlaylistSongs playlistSong = new PlaylistSongs(idPlaylist, idSong);
+
+                params = "";
+                params += "playlistSong=";
+
+                requestHandler.getResult("ADDSONG", params, playlistSong, String.class);
+            }
+            regView.showMessage(message);
+            this.initPlaylists();
+            regView.increaseNrPersonalizedMix();
+            regView.clearMainPanel();
+            regView.init();
+        }
+        else
+            regView.showMessage("Cannot generate playlist! No history!");
+    }
+
+    public void rateSong() {
+        int option = regView.ratingSystem();
+        int idMe = regView.getUserId();
+        int idSongToRate = regView.getIdRateSong();
+        if(option == JOptionPane.YES_OPTION) {
+            int starsRated = regView.getRating();
+            if (starsRated != 0) {
+                String message = "";
+
+                String params = "";
+                params += "idUser=" + idMe + "#idSong=" + idSongToRate + "#stars=" + starsRated + "#";
+
+                message = (requestHandler.getResult("RATESONG", params, String.class)).get(0);
+
+
+                this.initRatingsForSong();
+                double newRating = regView.getNewRating();
+
+                Song ratedSong;
+                params = "";
+                params += "id=" + idSongToRate + "#";
+
+                ratedSong = (requestHandler.getResult("GETSONGWITHID", params, Song.class)).get(0);
+
+                params = "";
+                params += "id=" + idSongToRate + "#newTitle=" + ratedSong.getTitle()+ "#newArtist=" + ratedSong.getArtist() +
+                        "#newAlbum=" + ratedSong.getAlbum() + "#newGenre=" + ratedSong.getGenre() +
+                        "#newViewCount=" + ratedSong.getViewCount() + "#newRating=" + newRating + "#";
+
+                requestHandler.getResult("UPDATESONG", params, String.class);
+
+                regView.showMessage(message);
+                regView.resetRateSong();
+                this.initRatedSongs();
+                this.initSongs();
+                regView.setRatedSongs(ratedSongs);
+                regView.setSongs(songs);
+                regView.clearMainPanel();
+                regView.init();
+
+            } else {
+                regView.showMessage("Please rate the song between 1 - 5 stars!");
+                regView.resetRateSong();
+            }
+        }
+        else if(option == -1) {
+            regView.showMessage("Please select a song to rate!");
+            regView.resetRateSong();
+        }
+        else if(option == -2) {
+            regView.showMessage("You have already rated this song!");
+            regView.resetRateSong();
+        }
+    }
 }

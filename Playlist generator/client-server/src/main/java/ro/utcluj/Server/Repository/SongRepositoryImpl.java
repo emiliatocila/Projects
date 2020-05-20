@@ -31,6 +31,25 @@ public class SongRepositoryImpl implements ISongRepository {
     }
 
     @Override
+    public Song getSongById(int id) {
+        SessionFactory sessionFactory = ApplicationSession.getSession();
+        Session session = sessionFactory.openSession();
+        List<Song> songs = null;
+        String getSongWithIdQuery = "from Song where id='" + id + "'";
+        try {
+            session.beginTransaction();
+            songs = session.createQuery(getSongWithIdQuery, Song.class).list();
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            session.getTransaction().rollback();
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+        return songs.get(0);
+    }
+
+    @Override
     public List<Song> viewAllSongsByTitle(String title) {
         SessionFactory sessionFactory = ApplicationSession.getSession();
         Session session = sessionFactory.openSession();
@@ -111,7 +130,26 @@ public class SongRepositoryImpl implements ISongRepository {
         SessionFactory sessionFactory = ApplicationSession.getSession();
         Session session = sessionFactory.openSession();
         List<Song> songs = null;
-        String viewAllSongsQuery = "from Song where viewCount=(select max(viewCount) from Song)";
+        String viewAllSongsQuery = "from Song ORDER BY viewCount DESC";
+        try {
+            session.beginTransaction();
+            songs = session.createQuery(viewAllSongsQuery, Song.class).list();
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            session.getTransaction().rollback();
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+        return songs;
+    }
+
+    @Override
+    public List<Song> viewAllSongsByRating() {
+        SessionFactory sessionFactory = ApplicationSession.getSession();
+        Session session = sessionFactory.openSession();
+        List<Song> songs = null;
+        String viewAllSongsQuery = "from Song ORDER BY rating DESC";
         try {
             session.beginTransaction();
             songs = session.createQuery(viewAllSongsQuery, Song.class).list();
@@ -167,7 +205,7 @@ public class SongRepositoryImpl implements ISongRepository {
     }
 
     @Override
-    public int updateSong(int id, String newTitle, String newArtist, String newAlbum, String newGenre, int newViewCount) {
+    public int updateSong(int id, String newTitle, String newArtist, String newAlbum, String newGenre, int newViewCount, double newRating) {
         int success = 1;
         SessionFactory sessionFactory = ApplicationSession.getSession();
         Session session = sessionFactory.openSession();
@@ -181,6 +219,7 @@ public class SongRepositoryImpl implements ISongRepository {
             song.setAlbum(newAlbum);
             song.setGenre(newGenre);
             song.setViewCount(newViewCount);
+            song.setRating(newRating);
             session.update(song);
             session.getTransaction().commit();
         } catch (Exception e) {

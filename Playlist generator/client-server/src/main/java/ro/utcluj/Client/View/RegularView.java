@@ -2,53 +2,68 @@ package ro.utcluj.Client.View;
 
 import ro.utcluj.Client.Client;
 import ro.utcluj.Client.Controller.RegUserController;
-import ro.utcluj.ClientAndServer.Model.Playlist;
-import ro.utcluj.ClientAndServer.Model.Song;
-import ro.utcluj.ClientAndServer.Model.SongSugg;
-import ro.utcluj.ClientAndServer.Model.User;
+import ro.utcluj.ClientAndServer.Model.*;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageProducer;
+import java.awt.image.RGBImageFilter;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.List;
 
+import static jdk.nashorn.internal.objects.NativeMath.round;
+
 public class RegularView extends JFrame implements IRegularView {
 
-    User user = null;
-    List<User> friends = new ArrayList<>();
-    List<User> friendRequests = new ArrayList<>();
-    List<User> pendingFriendRequests = new ArrayList<>();
-    List<Song> songs = new ArrayList<Song>();
-    List<Playlist> playlists = new ArrayList<Playlist>();
-    List<Song> playlistSongs = new ArrayList<Song>();
-    List<SongSugg> songSuggSent = new ArrayList<SongSugg>();
-    List<SongSugg> songSuggReceived = new ArrayList<SongSugg>();
-    List<Song> suggSongsReceived = new ArrayList<Song>();
-    List<String> whoSuggested = new ArrayList<String>();
+    private User user = null;
+    private List<User> friends = new ArrayList<>();
+    private List<User> friendRequests = new ArrayList<>();
+    private List<User> pendingFriendRequests = new ArrayList<>();
+    private List<Song> songs = new ArrayList<Song>();
+    private List<Playlist> playlists = new ArrayList<Playlist>();
+    private List<Song> playlistSongs = new ArrayList<Song>();
+    private List<SongSugg> songSuggSent = new ArrayList<SongSugg>();
+    private List<SongSugg> songSuggReceived = new ArrayList<SongSugg>();
+    private List<Song> suggSongsReceived = new ArrayList<Song>();
+    private List<String> whoSuggested = new ArrayList<String>();
+    private List<Song> playedSongs = new ArrayList<Song>();
+    private List<SongRatings> ratedSongs = new ArrayList<>();
+    private List<SongRatings> ratingsForSong = new ArrayList<>();
 
-    JTabbedPane mainPanel;
-    int tabCurrentIndex = 0;
+    private List<ImageIcon> iconList = new ArrayList<>();
+    private List<JLabel> labelList = Arrays.asList(new JLabel(), new JLabel(), new JLabel(), new JLabel(), new JLabel());
+    private ImageIcon starIcon = new ImageIcon("star.png");
+    ImageProducer ip = starIcon.getImage().getSource();
+    private int clicked = -1;
 
-    JPanel homePanel;
-    JPanel songsPanel;
-    JPanel playlistsPanel;
+    private JTabbedPane mainPanel;
+    private int tabCurrentIndex = 0;
 
-    JTable friendsTable;
-    JTable friendRequestsTable;
-    JTable pendingFriendRequestsTable;
-    JTable songsTable;
-    JTable playlistsTable;
-    JTable playlistSongsTable;
-    JTable songSuggReceivedTable;
-    JScrollPane scrollFriends;
-    JScrollPane scrollFriendRequests;
-    JScrollPane scrollPendingFriendRequests;
-    JScrollPane scrollSongs;
-    JScrollPane scrollPlaylists;
-    JScrollPane scrollPlaylistSongs;
-    JScrollPane scrollSongSuggReceivedTable;
+    private JPanel homePanel;
+    private JPanel songsPanel;
+    private JPanel playlistsPanel;
+
+    private JTable friendsTable;
+    private JTable friendRequestsTable;
+    private JTable pendingFriendRequestsTable;
+    private JTable songsTable;
+    private JTable playlistsTable;
+    private JTable playlistSongsTable;
+    private JTable songSuggReceivedTable;
+    private JScrollPane scrollFriends;
+    private JScrollPane scrollFriendRequests;
+    private JScrollPane scrollPendingFriendRequests;
+    private JScrollPane scrollSongs;
+    private JScrollPane scrollPlaylists;
+    private JScrollPane scrollPlaylistSongs;
+    private JScrollPane scrollSongSuggReceivedTable;
 
     private JButton showAllSongsBtn = new JButton("Show all songs");
     private JButton showAllSongs2Btn = new JButton("Back");
@@ -72,10 +87,12 @@ public class RegularView extends JFrame implements IRegularView {
     private JButton showAllSongSuggReceivedBtn = new JButton("View suggested songs");
     private JButton confirmSuggSongBtn = new JButton("Accept song suggestion");
     private JButton denySuggSongBtn = new JButton("Deny song suggestion");
+    private JButton generatePlaylistBtn = new JButton("Generate personalized playlist");
+    private JButton rateSongBtn = new JButton("Rate song");
 
-    JTextField newFriendUsernameTextField;
-    JTextField criteriaTextField;
-    JTextField playlistNameTextField;
+    private JTextField newFriendUsernameTextField;
+    private JTextField criteriaTextField;
+    private JTextField playlistNameTextField;
 
     private int playlistsOrPlaylistSongs = 0;
     private int friendsOrFriendRequests = 0;
@@ -92,6 +109,8 @@ public class RegularView extends JFrame implements IRegularView {
     private int idNewSongSugg = -1;
     private int idSongSuggConfirmed = -1;
     private int idSongSuggDenied = -1;
+    private int nrPersonalizedMix = 1;
+    private int idRateSong = -1;
 
     public RegularView(User user){
         this.user = user;
@@ -128,6 +147,8 @@ public class RegularView extends JFrame implements IRegularView {
         showAllSongSuggReceivedBtn.addActionListener(e -> regUserController.showAllSongSuggReceived());
         confirmSuggSongBtn.addActionListener(e -> regUserController.confirmSongSugg(null));
         denySuggSongBtn.addActionListener(e -> regUserController.denySongSugg(null));
+        generatePlaylistBtn.addActionListener(e -> regUserController.generatePlaylist());
+        rateSongBtn.addActionListener(e -> regUserController.rateSong());
     }
 
     @Override
@@ -229,9 +250,13 @@ public class RegularView extends JFrame implements IRegularView {
             songsPanelB.add(Box.createRigidArea(new Dimension(0, 20)));
             songsPanelB.add(createNewPlaylistBtn);
             songsPanelB.add(Box.createRigidArea(new Dimension(0, 20)));
+            songsPanelB.add(generatePlaylistBtn);
+            songsPanelB.add(Box.createRigidArea(new Dimension(0, 20)));
             songsPanelB.add(addSongToAnExistingPlaylistBtn);
             songsPanelB.add(Box.createRigidArea(new Dimension(0, 20)));
             songsPanelB.add(addSongSuggBtn);
+            songsPanelB.add(Box.createRigidArea(new Dimension(0, 20)));
+            songsPanelB.add(rateSongBtn);
             songsPanelB.add(Box.createRigidArea(new Dimension(0, 20)));
             songsPanelB.add(showAllSongSuggReceivedBtn);
             songsPanelB.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -536,6 +561,30 @@ public class RegularView extends JFrame implements IRegularView {
     }
 
     @Override
+    public void setPlayedSongs(List<Song> playedSongs) {
+        if(playedSongs.get(0) == null)
+            this.playedSongs.clear();
+        else
+            this.playedSongs = playedSongs;
+    }
+
+    @Override
+    public void setRatedSongs(List<SongRatings> ratedSongs) {
+        if(ratedSongs.get(0) == null)
+            this.ratedSongs.clear();
+        else
+            this.ratedSongs = ratedSongs;
+    }
+
+    @Override
+    public void setRatingsForSong(List<SongRatings> ratingsForSong) {
+        if(ratingsForSong.get(0) == null)
+            this.ratingsForSong.clear();
+        else
+            this.ratingsForSong = ratingsForSong;
+    }
+
+    @Override
     public void clearMainPanel() {
         tabCurrentIndex = mainPanel.getSelectedIndex();
         mainPanel.removeAll();
@@ -579,6 +628,128 @@ public class RegularView extends JFrame implements IRegularView {
     }
 
     @Override
+    public int ratingSystem() {
+        int row = songsTable.getSelectedRow();
+        if (songsTable.isRowSelected(songsTable.getSelectedRow())) {
+            idRateSong = (int) songsTable.getValueAt(row, 0);
+        } else return -1;
+
+        for(SongRatings ratedSong : ratedSongs) {
+            if(ratedSong.getIdSong() == idRateSong)
+                return -2;
+        }
+
+        ImageIcon star = makeStarImageIcon(ip, 1f, 1f, 0f);
+        iconList = Arrays.asList(star, star, star, star, star);
+        JPanel starsPanel = new JPanel();
+        starsPanel.setLayout(new GridLayout(1, 5, 2, 2));
+        for(int i = 0; i < 5; i++) {
+            labelList.get(i).setIcon(starIcon);
+            starsPanel.add(labelList.get(i));
+        }
+        Object[] stars = {starsPanel};
+        starsPanel.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                clicked = getSelectedIconIndex(e.getPoint());
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                repaintIcon(getSelectedIconIndex(e.getPoint()));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                repaintIcon(clicked);
+            }
+        });
+        starsPanel.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                repaintIcon(getSelectedIconIndex(e.getPoint()));
+            }
+        });
+        int option = JOptionPane.showConfirmDialog(this, stars, "Rate song", JOptionPane.OK_CANCEL_OPTION);
+        return option;
+    }
+
+    @Override
+    public double getNewRating() {
+        int nrRatings = 0;
+        double totalRating = 0.0;
+        for(SongRatings rating : ratingsForSong) {
+            nrRatings++;
+            totalRating += rating.getStars();
+        }
+        double newRating = totalRating / (double)nrRatings;
+        newRating = Math.round(newRating * 100.0) / 100.0;
+        return newRating;
+    }
+
+    class SelectedImageFilter extends RGBImageFilter {
+        private float rf;
+        private float gf;
+        private float bf;
+
+        public SelectedImageFilter(float rf, float gf, float bf) {
+            super();
+            this.rf = Math.min(1f, rf);
+            this.gf = Math.min(1f, gf);
+            this.bf = Math.min(1f, bf);
+            canFilterIndexColorModel = false;
+        }
+
+        @Override
+        public int filterRGB(int x, int y, int argb) {
+            int r = (int) (((argb >> 16) & 0xFF) * rf);
+            int g = (int) (((argb >> 8) & 0xFF) * gf);
+            int b = (int) ((argb & 0xFF) * bf);
+            return (argb & 0xFF_00_00_00) | (r << 16) | (g << 8) | b;
+        }
+    }
+
+    private ImageIcon makeStarImageIcon(ImageProducer ip, float rf, float gf, float bf) {
+        return new ImageIcon(Toolkit.getDefaultToolkit().createImage(new FilteredImageSource(ip, new SelectedImageFilter(rf, gf, bf))));
+    }
+
+    @Override
+    public int getRating() {
+        return this.clicked + 1;
+    }
+
+    @Override
+    public void resetRateSong() {
+        idRateSong = -1;
+        clicked = -1;
+    }
+
+    public void repaintIcon(int index) {
+        for(int i = 0; i < labelList.size(); i++) {
+            labelList.get(i).setIcon(i <= index?iconList.get(i):starIcon);
+        }
+        repaint();
+    }
+
+    private int getSelectedIconIndex(Point p) {
+        for(int i = 0; i < labelList.size(); i++) {
+            Rectangle r = labelList.get(i).getBounds();
+            r.grow(1, 1);
+            if(r.contains(p))
+                return i;
+        }
+        return -1;
+    }
+
+    @Override
     public int addFriendsOptionPane() {
         newFriendUsernameTextField = new JTextField(20);
         Object[] message = {"Username: ", newFriendUsernameTextField};
@@ -605,7 +776,7 @@ public class RegularView extends JFrame implements IRegularView {
 
     @Override
     public int[] showSearchByOptionPane() {
-        String[] searchBy = {"title", "artist", "album", "genre", "top views"};
+        String[] searchBy = {"title", "artist", "album", "genre", "top views", "rating"};
         JComboBox criteria = new JComboBox(searchBy);
         criteria.setSelectedIndex(0);
         criteriaTextField = new JTextField(20);
@@ -807,6 +978,9 @@ public class RegularView extends JFrame implements IRegularView {
     public void setPlaylistsOrPlaylistsSongs(int val) { this.playlistsOrPlaylistSongs = val; }
 
     @Override
+    public void increaseNrPersonalizedMix() { this.nrPersonalizedMix++; }
+
+    @Override
     public int selectPlaylistToView() {
         int row = playlistsTable.getSelectedRow();
         if (playlistsTable.isRowSelected(playlistsTable.getSelectedRow())) {
@@ -847,10 +1021,16 @@ public class RegularView extends JFrame implements IRegularView {
     public int getNewIdSongSugg() { return idNewSongSugg; }
 
     @Override
+    public int getIdRateSong() { return idRateSong; }
+
+    @Override
     public int getIdSongSuggConfirmed() { return idSongSuggConfirmed; }
 
     @Override
     public int getIdSongSuggDenied() { return idSongSuggDenied; }
+
+    @Override
+    public int getNrPersonalizedMix() { return nrPersonalizedMix; }
 
     @Override
     public void setVisibleRegView(boolean value) { this.setVisible(value); }

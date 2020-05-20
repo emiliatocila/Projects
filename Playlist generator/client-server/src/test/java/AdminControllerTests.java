@@ -225,12 +225,13 @@ public class AdminControllerTests {
         when(adminView.getAlbumToUpdate()).thenReturn("newAlbum");
         when(adminView.getGenreToUpdate()).thenReturn("newGenre");
         when(adminView.getViewCountToUpdate()).thenReturn(0);
+        when(adminView.getRatingToUpdate()).thenReturn(3.0);
 
         List<String> messages = new ArrayList<>();
         String message = "Song updated successfully!";
         messages.add(message);
 
-        when(requestHandler.getResult(eq("UPDATESONG"), eq("id=0#newTitle=newTitle#newArtist=newArtist#newAlbum=newAlbum#newGenre=newGenre#newViewCount=0#"), eq(String.class))).thenReturn(messages);
+        when(requestHandler.getResult(eq("UPDATESONG"), eq("id=0#newTitle=newTitle#newArtist=newArtist#newAlbum=newAlbum#newGenre=newGenre#newViewCount=0#newRating=3.0#"), eq(String.class))).thenReturn(messages);
 
         AdminController controller = new AdminController(adminView, requestHandler);
 

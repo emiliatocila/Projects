@@ -2,7 +2,6 @@ package ro.utcluj.Client.Report;
 
 import ro.utcluj.ClientAndServer.Model.Playlist;
 import ro.utcluj.ClientAndServer.Model.Song;
-
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;

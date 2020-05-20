@@ -12,18 +12,20 @@ public class Song {
     private String album;
     private String genre;
     private int viewCount;
+    private double rating;
 
     public Song() {
         // this form used by Hibernate
     }
 
-    public Song(String title, String artist, String album, String genre, int viewCount) {
+    public Song(String title, String artist, String album, String genre, int viewCount, double rating) {
         // for application use, to create new events
         this.title = title;
         this.artist = artist;
         this.album = album;
         this.genre = genre;
         this.viewCount = viewCount;
+        this.rating = rating;
     }
 
     @Id
@@ -75,4 +77,8 @@ public class Song {
     }
 
     public void setViewCount(int viewCount) { this.viewCount = viewCount; }
+
+    public double getRating() { return rating; }
+
+    public void setRating(double rating) { this.rating = rating; }
 }
